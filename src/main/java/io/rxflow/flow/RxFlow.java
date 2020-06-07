@@ -1,77 +1,89 @@
 package io.rxflow.flow;
 
-import io.rxflow.collector.RxCollector;
-import io.rxflow.collector.RxCollectors;
-import io.rxflow.func.Cancellable;
+import io.rxflow.flow.callee.ArrayCallee;
+import io.rxflow.flow.callee.Callee;
+import io.rxflow.flow.callee.CalleeTransform;
+import io.rxflow.flow.callee.IteratorCallee;
+import io.rxflow.flow.caller.Caller;
+import io.rxflow.flow.caller.ContinueCaller;
+import io.rxflow.flow.caller.Collector;
+import io.rxflow.flow.reply.Reply;
+import io.rxflow.flow.reply.ReplyWrapper;
 import io.rxflow.func.Consumer;
 import io.rxflow.func.Func;
 import io.rxflow.func.Predicate;
 
-/**
- * @author 7hens
- */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public abstract class RxFlow<T> {
-    public interface Emitter<T> {
-        void emit(T item);
+    protected abstract Callee<T> callee();
 
-        void terminate(Throwable e);
-
-        boolean isTerminated();
+    public void collect(Collector<T> collector) {
+        callee().reply(ContinueCaller.create(collector));
     }
 
-    public interface Creator<T> {
-        void create(Emitter<? super T> emitter) throws Throwable;
-    }
-
-    public interface Converter<Up, Dn> {
-        Dn apply(RxFlow<Up> upStream);
-    }
-
-    public interface Operator<Up, Dn> {
-        RxCollector<? super Up> apply(RxCollector<? super Dn> downStream);
-    }
-
-    public abstract Cancellable collect(RxCollector<? super T> collector);
-
-    public Cancellable collect() {
-        return collect(RxCollectors.empty());
-    }
-
-    public static <T> RxFlow<T> create(Creator<T> creator) {
-        return new Create<>(creator);
+    public static <T> RxFlow<T> of(Callee<T> callee) {
+        return new RxFlow<T>() {
+            @Override
+            protected Callee<T> callee() {
+                return callee;
+            }
+        };
     }
 
     @SafeVarargs
     public static <T> RxFlow<T> just(T... items) {
-        return create(new CreateJust<>(items));
+        return of(ArrayCallee.of(items));
     }
 
-    public static <T> RxFlow<T> of(Iterable<? extends T> iterable) {
-        return create(new CreateOf<>(iterable));
+    public static <T> RxFlow<T> of(Iterable<T> iterable) {
+        return of(IteratorCallee.of(iterable.iterator()));
     }
 
-    public <R> R to(Converter<T, ? extends R> converter) {
-        return converter.apply(this);
+    public interface Operator<Up, Dn> {
+        void apply(Reply<Up> reply, Caller<Dn> caller) throws Throwable;
     }
 
-    public <R> RxFlow<R> lift(Operator<? super T, ? extends R> operator) {
-        return to(new OpLift<>(operator));
+    private static void log(String text) {
+        System.out.println(text);
     }
 
-    public RxFlow<T> filter(Predicate<? super T> predicate) {
-        return lift(new OpFilter<>(predicate));
+    public <R> RxFlow<R> transform(final Operator<T, R> operator) {
+        final RxFlow<T> upFlow = this;
+        return of(new CalleeTransform<>(upFlow.callee(), operator));
     }
 
-    public RxFlow<Boolean> any(Predicate<? super T> predicate) {
-        return lift(new OpAny<>(predicate));
+    public <R> RxFlow<R> map(Func<T, R> mapper) {
+        return transform((reply, caller) -> {
+            caller.receive(reply.map(mapper));
+        });
     }
 
-    public RxFlow<T> onEach(Consumer<? super T> consumer) {
-        return lift(new OpOnEach<>(consumer));
+    public RxFlow<T> onEach(Consumer<T> onEach) {
+        return transform(new Operator<T, T>() {
+            @Override
+            public void apply(Reply<T> reply, Caller<T> caller) throws Throwable {
+                if (!reply.over()) {
+                    onEach.accept(reply.value());
+                }
+                caller.receive(reply);
+            }
+        });
     }
 
-    public <R> RxFlow<R> map(Func<? super T,? extends R> mapper) {
-        return lift(new OpMap<>(mapper));
+    public RxFlow<T> filter(Predicate<T> predicate) {
+        final RxFlow<T> upFlow = this;
+        return transform(new Operator<T, T>() {
+            @Override
+            public void apply(Reply<T> reply, Caller<T> caller) throws Throwable {
+                if (!reply.over()) {
+                    if (predicate.test(reply.value())) {
+                        caller.receive(reply);
+                    } else {
+                        reply.callee().reply(caller);
+                    }
+                } else {
+                    caller.receive(reply);
+                }
+            }
+        });
     }
 }
