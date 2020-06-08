@@ -1,7 +1,9 @@
 package io.rxflow.flow.caller;
 
-public interface Collector<T> {
-    void onCollect(T t);
+import org.jetbrains.annotations.Nullable;
 
-    void onTerminate(Throwable e);
+public interface Collector<T> {
+    void onCollect(@Nullable T t);
+
+    void onTerminate(@Nullable Throwable e);
 }

@@ -1,5 +1,7 @@
 package io.rxflow.flow.reply;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.NoSuchElementException;
 
 import io.rxflow.flow.callee.Callee;
@@ -26,6 +28,7 @@ class ReplyError<T> extends Reply<T> {
         throw new NoSuchElementException("This is a final replay");
     }
 
+    @NotNull
     @Override
     public Callee<T> callee() {
         throw new NoSuchElementException("This is a final replay");

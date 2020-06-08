@@ -1,5 +1,7 @@
 package io.rxflow.flow.reply;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.NoSuchElementException;
 
 import io.rxflow.flow.callee.Callee;
@@ -28,6 +30,7 @@ class ReplyValue<T> extends Reply<T> {
         return value;
     }
 
+    @NotNull
     @Override
     public Callee<T> callee() {
         return callee;

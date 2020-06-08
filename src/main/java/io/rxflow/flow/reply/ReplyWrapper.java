@@ -1,5 +1,7 @@
 package io.rxflow.flow.reply;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.rxflow.flow.callee.Callee;
 
 public abstract class ReplyWrapper<T> extends Reply<T> {
@@ -20,6 +22,7 @@ public abstract class ReplyWrapper<T> extends Reply<T> {
         return baseReply().value();
     }
 
+    @NotNull
     @Override
     public Callee<T> callee() {
         return baseReply().callee();

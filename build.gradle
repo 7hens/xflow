@@ -31,4 +31,5 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
     testImplementation 'junit:junit:4.13'
+    compileOnly 'org.jetbrains:annotations:19.0.0'
 }
