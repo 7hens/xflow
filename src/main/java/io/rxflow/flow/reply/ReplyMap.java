@@ -33,10 +33,6 @@ class ReplyMap<T, R> extends Reply<R> {
 
     @Override
     public Callee<R> callee() {
-        return caller -> {
-            reply.callee().reply(reply -> {
-                caller.receive(this.reply.map(mapper));
-            });
-        };
+        return reply.callee().map(mapper);
     }
 }

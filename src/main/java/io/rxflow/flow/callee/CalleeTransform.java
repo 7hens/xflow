@@ -15,27 +15,11 @@ public class CalleeTransform<Up, Dn> extends Callee<Dn> {
 
     @Override
     public void reply(Caller<Dn> caller) {
-        upCallee.reply(new Caller<Up>() {
-            @Override
-            public void receive(Reply<Up> reply) {
-                Caller<Dn> wrapCaller = downReply -> {
-                    caller.receive(new ReplyWrapper<Dn>() {
-                        @Override
-                        protected Reply<Dn> baseReply() {
-                            return downReply;
-                        }
-
-                        @Override
-                        public Callee<Dn> callee() {
-                            return new CalleeTransform<>(reply.callee(), operator);
-                        }
-                    });
-                };
-                try {
-                    operator.apply(reply, wrapCaller);
-                } catch (Throwable e) {
-                    wrapCaller.receive(Reply.of(e));
-                }
+        upCallee.reply(reply -> {
+            try {
+                operator.apply(reply, caller);
+            } catch (Throwable e) {
+                caller.receive(Reply.of(e));
             }
         });
     }

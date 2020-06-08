@@ -1,11 +1,17 @@
 package io.rxflow.flow.callee;
 
 import io.rxflow.flow.caller.Caller;
+import io.rxflow.flow.caller.Collector;
+import io.rxflow.flow.caller.ContinueCaller;
 import io.rxflow.func.Func;
 import io.rxflow.func.Predicate;
 
 public abstract class Callee<T> {
     public abstract void reply(Caller<T> caller);
+
+    public void collect(Collector<T> collector) {
+        reply(ContinueCaller.create(collector));
+    }
 
     @SafeVarargs
     public static <T> Callee<T> just(T... items) {
