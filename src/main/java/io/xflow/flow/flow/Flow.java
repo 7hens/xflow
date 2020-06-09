@@ -7,9 +7,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.xflow.flow.callee.ArrayCallee;
 import io.xflow.flow.callee.Callee;
-import io.xflow.flow.caller.Collector;
 import io.xflow.flow.caller.CallerEmitter;
+import io.xflow.flow.caller.Collector;
 import io.xflow.flow.caller.Emitter;
+import io.xflow.flow.reply.Replies;
 import io.xflow.func.Cancellable;
 import io.xflow.func.Consumer;
 import io.xflow.func.Predicate;
@@ -17,7 +18,7 @@ import io.xflow.func.Predicate;
 /**
  * @author 7hens
  */
-public abstract class XFlow<T> {
+public abstract class Flow<T> {
     public abstract Cancellable collect(@NotNull Collector<T> collector);
 
     public interface Operator<Up, Dn> {
@@ -25,8 +26,8 @@ public abstract class XFlow<T> {
         Collector<Up> apply(@NotNull Emitter<Dn> emitter) throws Throwable;
     }
 
-    public static <T> XFlow<T> of(@NotNull Callee<T> callee) {
-        return new XFlow<T>() {
+    public static <T> Flow<T> of(@NotNull Callee<T> callee) {
+        return new Flow<T>() {
             @Override
             public Cancellable collect(@NotNull Collector<T> collector) {
                 CallerEmitter<T> caller = CallerEmitter.of(collector);
@@ -37,15 +38,29 @@ public abstract class XFlow<T> {
     }
 
     @SafeVarargs
-    public static <T> XFlow<T> just(T... items) {
+    public static <T> Flow<T> just(T... items) {
         return of(ArrayCallee.of(items));
     }
 
-    public <R> XFlow<R> lift(@NotNull Operator<T, R> operator) {
-        return new XFlowLift<>(this, operator);
+
+    public static <T> Flow<T> error(Throwable e) {
+        return of(caller -> caller.receive(Replies.of(e)));
     }
 
-    public XFlow<T> onEach(@NotNull Consumer<T> consumer) {
+    public static <T> Flow<T> empty() {
+        return error(null);
+    }
+
+    public static <T> Flow<T> never() {
+        return of(caller -> {
+        });
+    }
+
+    public <R> Flow<R> lift(@NotNull Operator<T, R> operator) {
+        return new FlowLift<>(this, operator);
+    }
+
+    public Flow<T> onEach(@NotNull Consumer<T> consumer) {
         return lift(emitter -> new Collector<T>() {
             @Override
             public void onCollect(T t) {
@@ -64,7 +79,7 @@ public abstract class XFlow<T> {
         });
     }
 
-    public XFlow<T> filter(@NotNull Predicate<T> predicate) {
+    public Flow<T> filter(@NotNull Predicate<T> predicate) {
         return lift(emitter -> new Collector<T>() {
             @Override
             public void onCollect(@Nullable T t) {
@@ -84,9 +99,9 @@ public abstract class XFlow<T> {
         });
     }
 
-    public XFlow<T> take(int limit) {
+    public Flow<T> take(int limit) {
         if (limit == 0) {
-            // empty()
+            return empty();
         }
         AtomicInteger count = new AtomicInteger(limit);
         return lift(emitter -> new Collector<T>() {

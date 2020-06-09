@@ -7,15 +7,15 @@ import io.xflow.flow.X;
 /**
  * @author 7hens
  */
-public class RxFlowTest {
+public class FlowTest {
     @Test
     public void just() {
-        XFlow.just(1, 2, 3).collect(X.collector("just"));
+        Flow.just(1, 2, 3).collect(X.collector("just"));
     }
 
     @Test
     public void filter() {
-        XFlow.just(1, 2, 3, 4, 5, 6)
+        Flow.just(1, 2, 3, 4, 5, 6)
                 .onEach(X.consumer("filter"))
                 .filter(it -> it == 3)
                 .collect(X.collector("filter"));
@@ -23,7 +23,7 @@ public class RxFlowTest {
 
     @Test
     public void take() {
-        XFlow.just(1, 2, 3, 4, 5, 6)
+        Flow.just(1, 2, 3, 4, 5, 6)
                 .onEach(X.consumer("take"))
                 .take(2)
                 .collect(X.collector("take"));

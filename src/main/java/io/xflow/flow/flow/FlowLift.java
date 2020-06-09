@@ -9,11 +9,11 @@ import io.xflow.flow.caller.Collector;
 import io.xflow.func.Cancellable;
 
 @ApiStatus.Internal
-class XFlowLift<T, R> extends XFlow<R> {
-    private final XFlow<T> upFlow;
+class FlowLift<T, R> extends Flow<R> {
+    private final Flow<T> upFlow;
     private final Operator<T, R> operator;
 
-    XFlowLift(@NotNull XFlow<T> upFlow, @NotNull Operator<T, R> operator) {
+    FlowLift(@NotNull Flow<T> upFlow, @NotNull Operator<T, R> operator) {
         this.upFlow = upFlow;
         this.operator = operator;
     }
