@@ -9,8 +9,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import io.xflow.func.Cancellable;
 import io.xflow.cancellable.CompositeCancellable;
+import io.xflow.func.Cancellable;
 
 /**
  * @author 7hens
@@ -39,7 +39,7 @@ class ExecutorScheduler extends RxScheduler {
 
     private final Executor executor;
 
-    private ExecutorScheduler(Executor executor) {
+    ExecutorScheduler(Executor executor) {
         this.executor = executor;
     }
 

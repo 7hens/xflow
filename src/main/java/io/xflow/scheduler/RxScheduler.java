@@ -1,5 +1,6 @@
 package io.xflow.scheduler;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import io.xflow.func.Cancellable;
@@ -30,5 +31,9 @@ public abstract class RxScheduler {
 
     public static RxScheduler io() {
         return ExecutorScheduler.io();
+    }
+
+    public static RxScheduler fromExecutor(Executor executor) {
+        return new ExecutorScheduler(executor);
     }
 }
