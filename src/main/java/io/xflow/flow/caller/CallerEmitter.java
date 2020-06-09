@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.xflow.cancellable.CompositeCancellable;
+import io.xflow.flow.callee.Callee;
 import io.xflow.flow.reply.Reply;
 import io.xflow.scheduler.Scheduler;
 
@@ -27,35 +28,38 @@ public class CallerEmitter<T> extends CompositeCancellable implements Caller<T>,
 
     @Override
     public void receive(@NotNull Reply<T> reply) {
-        if (reply.over()) {
-            over(reply.error());
-            return;
-        }
         try {
-            emit(reply.value());
-            if (!isTerminated.get()) {
-                reply.callee().reply(this);
+            if (reply.over()) {
+                over(reply.error());
+                return;
             }
+            emit(reply.value(), reply.callee());
         } catch (Throwable e) {
             over(e);
         }
     }
 
-    @Override
-    public void emit(T value) {
+    private void emit(T value, Callee<T> callee) {
         if (isTerminated.get()) return;
         restCount.getAndIncrement();
         scheduler.schedule(() -> {
             if (isTerminated.get()) return;
             try {
-                collector.onCollect(value);
+                collector.onEach(value);
                 if (restCount.decrementAndGet() <= 0) {
                     over(null);
+                } else if (callee != null && !isTerminated.get()) {
+                    callee.reply(this);
                 }
             } catch (Throwable e) {
                 over(e);
             }
         });
+    }
+
+    @Override
+    public void emit(T value) {
+        emit(value, null);
     }
 
     @Override
@@ -77,14 +81,14 @@ public class CallerEmitter<T> extends CompositeCancellable implements Caller<T>,
     protected void onCancel() {
         super.onCancel();
         over(new CancellationException());
-//        throw new RuntimeException();
+        throw new RuntimeException();
     }
 
-    public Collector<T>collector() {
+    public Collector<T> collector() {
         CallerEmitter<T> emitter = this;
         return new Collector<T>() {
             @Override
-            public void onCollect(T t) {
+            public void onEach(T t) {
                 emitter.emit(t);
             }
 

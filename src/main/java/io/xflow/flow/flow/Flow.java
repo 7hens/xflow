@@ -27,7 +27,7 @@ public abstract class Flow<T> {
     public Cancellable collect() {
         return collect(Schedulers.unconfined(), new Collector<T>() {
             @Override
-            public void onCollect(T t) {
+            public void onEach(T t) {
             }
 
             @Override
@@ -78,7 +78,7 @@ public abstract class Flow<T> {
     public Flow<T> onEach(@NotNull Consumer<T> consumer) {
         return lift(emitter -> new Collector<T>() {
             @Override
-            public void onCollect(T t) {
+            public void onEach(T t) {
                 try {
                     consumer.accept(t);
                     emitter.emit(t);
@@ -97,8 +97,8 @@ public abstract class Flow<T> {
     public Flow<T> onCollect(@NotNull Collector<T> collector) {
         return lift(emitter -> new Collector<T>() {
             @Override
-            public void onCollect(T t) {
-                collector.onCollect(t);
+            public void onEach(T t) {
+                collector.onEach(t);
                 emitter.emit(t);
             }
 
@@ -113,7 +113,7 @@ public abstract class Flow<T> {
     public Flow<T> filter(@NotNull Predicate<T> predicate) {
         return lift(emitter -> new Collector<T>() {
             @Override
-            public void onCollect(@Nullable T t) {
+            public void onEach(@Nullable T t) {
                 try {
                     if (predicate.test(t)) {
                         emitter.emit(t);
@@ -137,7 +137,7 @@ public abstract class Flow<T> {
         AtomicInteger count = new AtomicInteger(limit);
         return lift(emitter -> new Collector<T>() {
             @Override
-            public void onCollect(T t) {
+            public void onEach(T t) {
                 if (count.get() <= 0) return;
                 int rest = count.decrementAndGet();
                 emitter.emit(t);

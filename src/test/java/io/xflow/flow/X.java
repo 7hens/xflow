@@ -23,7 +23,7 @@ public class X {
     public static <T> Collector<T> collector(String name) {
         return new Collector<T>() {
             @Override
-            public void onCollect(T t) {
+            public void onEach(T t) {
                 log("[" + name + "] (#" + threadName() + ") Collector.collect: " + t);
             }
 

@@ -30,8 +30,9 @@ public class FlowTest {
                 .onEach(X.consumer("take"))
                 .take(2)
                 .onCollect(X.collector("take"))
-                .flowOn(X.scheduler("A"))
+//                .flowOn(X.scheduler("A"))
                 .collect();
+        X.delay(2 * 1000);
     }
 
     @Test
