@@ -42,7 +42,7 @@ public class X {
     }
 
     public static Scheduler scheduler(String name) {
-        return Schedulers.from(Executors.newFixedThreadPool(2, runnable -> {
+        return Schedulers.from(Executors.newFixedThreadPool(8, runnable -> {
             Thread thread = new Thread(runnable);
             thread.setName(name);
             return thread;

@@ -10,7 +10,9 @@ import io.xflow.flow.X;
 public class FlowTest {
     @Test
     public void just() {
-        Flow.just(1, 2, 3).collect(X.collector("just"));
+        Flow.just(1, 2, 3)
+                .onCollect(X.collector("just"))
+                .collect();
     }
 
     @Test
@@ -18,7 +20,8 @@ public class FlowTest {
         Flow.just(1, 2, 3, 4, 5, 6)
                 .onEach(X.consumer("filter"))
                 .filter(it -> it == 3)
-                .collect(X.collector("filter"));
+                .onCollect(X.collector("filter"))
+                .collect();
     }
 
     @Test
@@ -26,7 +29,9 @@ public class FlowTest {
         Flow.just(1, 2, 3, 4, 5, 6)
                 .onEach(X.consumer("take"))
                 .take(2)
-                .collect(X.collector("take"));
+                .onCollect(X.collector("take"))
+                .flowOn(X.scheduler("A"))
+                .collect();
     }
 
     @Test
@@ -36,7 +41,9 @@ public class FlowTest {
                 .flowOn(X.scheduler("A"))
                 .onEach(X.consumer("flowOn.B"))
                 .flowOn(X.scheduler("B"))
-                .collect(X.collector("flowOn.C"));
-        X.delay(3 * 1000);
+                .onCollect(X.collector("flowOn.C"))
+                .flowOn(X.scheduler("C"))
+                .collect();
+        X.delay(2 * 1000);
     }
 }

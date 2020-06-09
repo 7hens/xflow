@@ -15,12 +15,26 @@ import io.xflow.func.Cancellable;
 import io.xflow.func.Consumer;
 import io.xflow.func.Predicate;
 import io.xflow.scheduler.Scheduler;
+import io.xflow.scheduler.Schedulers;
 
 /**
  * @author 7hens
  */
+@SuppressWarnings({"UnusedReturnValue", "WeakerAccess", "unused"})
 public abstract class Flow<T> {
-    public abstract Cancellable collect(@NotNull Collector<T> collector);
+    protected abstract Cancellable collect(@NotNull Scheduler scheduler, @NotNull Collector<T> collector);
+
+    public Cancellable collect() {
+        return collect(Schedulers.unconfined(), new Collector<T>() {
+            @Override
+            public void onCollect(T t) {
+            }
+
+            @Override
+            public void onTerminate(@Nullable Throwable e) {
+            }
+        });
+    }
 
     public interface Operator<Up, Dn> {
         @NotNull
@@ -30,8 +44,8 @@ public abstract class Flow<T> {
     public static <T> Flow<T> of(@NotNull Callee<T> callee) {
         return new Flow<T>() {
             @Override
-            public Cancellable collect(@NotNull Collector<T> collector) {
-                CallerEmitter<T> caller = new CallerEmitter<>(collector);
+            public Cancellable collect(@NotNull Scheduler scheduler, @NotNull Collector<T> collector) {
+                CallerEmitter<T> caller = new CallerEmitter<>(scheduler, collector);
                 callee.reply(caller);
                 return caller;
             }
@@ -75,6 +89,22 @@ public abstract class Flow<T> {
 
             @Override
             public void onTerminate(@Nullable Throwable e) {
+                emitter.over(e);
+            }
+        });
+    }
+
+    public Flow<T> onCollect(@NotNull Collector<T> collector) {
+        return lift(emitter -> new Collector<T>() {
+            @Override
+            public void onCollect(T t) {
+                collector.onCollect(t);
+                emitter.emit(t);
+            }
+
+            @Override
+            public void onTerminate(@Nullable Throwable e) {
+                collector.onTerminate(e);
                 emitter.over(e);
             }
         });
@@ -126,10 +156,11 @@ public abstract class Flow<T> {
 
     public Flow<T> flowOn(Scheduler scheduler) {
         Flow<T> upFlow = this;
+        Scheduler upScheduler = scheduler;
         return new Flow<T>() {
             @Override
-            public Cancellable collect(@NotNull Collector<T> collector) {
-                return upFlow.collect(collector);
+            protected Cancellable collect(@NotNull Scheduler scheduler, @NotNull Collector<T> collector) {
+                return upFlow.collect(upScheduler, new CallerEmitter<>(scheduler, collector).collector());
             }
         };
     }
