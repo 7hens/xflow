@@ -8,7 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.xflow.flow.callee.ArrayCallee;
 import io.xflow.flow.callee.Callee;
 import io.xflow.flow.caller.Collector;
-import io.xflow.flow.reply.Reply;
+import io.xflow.flow.caller.CallerEmitter;
+import io.xflow.flow.caller.Emitter;
+import io.xflow.func.Cancellable;
 import io.xflow.func.Consumer;
 import io.xflow.func.Predicate;
 
@@ -16,18 +18,20 @@ import io.xflow.func.Predicate;
  * @author 7hens
  */
 public abstract class XFlow<T> {
-    public abstract void collect(@NotNull Collector<T> collector);
+    public abstract Cancellable collect(@NotNull Collector<T> collector);
 
     public interface Operator<Up, Dn> {
         @NotNull
-        Collector<Up> apply(@NotNull Collector<Dn> collector) throws Throwable;
+        Collector<Up> apply(@NotNull Emitter<Dn> emitter) throws Throwable;
     }
 
     public static <T> XFlow<T> of(@NotNull Callee<T> callee) {
         return new XFlow<T>() {
             @Override
-            public void collect(@NotNull Collector<T> collector) {
-                callee.reply(collector);
+            public Cancellable collect(@NotNull Collector<T> collector) {
+                CallerEmitter<T> caller = CallerEmitter.of(collector);
+                callee.reply(caller);
+                return caller;
             }
         };
     }
@@ -42,13 +46,12 @@ public abstract class XFlow<T> {
     }
 
     public XFlow<T> onEach(@NotNull Consumer<T> consumer) {
-        return lift(collector -> new Collector<T>() {
-
+        return lift(emitter -> new Collector<T>() {
             @Override
-            public void onCollect(@Nullable T t) {
+            public void onCollect(T t) {
                 try {
                     consumer.accept(t);
-                    collector.collect(t);
+                    emitter.emit(t);
                 } catch (Throwable e) {
                     onTerminate(e);
                 }
@@ -56,18 +59,18 @@ public abstract class XFlow<T> {
 
             @Override
             public void onTerminate(@Nullable Throwable e) {
-                collector.terminate(e);
+                emitter.over(e);
             }
         });
     }
 
     public XFlow<T> filter(@NotNull Predicate<T> predicate) {
-        return lift(collector -> new Collector<T>() {
+        return lift(emitter -> new Collector<T>() {
             @Override
             public void onCollect(@Nullable T t) {
                 try {
                     if (predicate.test(t)) {
-                        collector.collect(t);
+                        emitter.emit(t);
                     }
                 } catch (Throwable e) {
                     onTerminate(e);
@@ -76,29 +79,29 @@ public abstract class XFlow<T> {
 
             @Override
             public void onTerminate(@Nullable Throwable e) {
-                collector.terminate(e);
+                emitter.over(e);
             }
         });
     }
 
     public XFlow<T> take(int limit) {
         AtomicInteger count = new AtomicInteger(limit);
-        return lift(collector -> new Collector<T>() {
+        return lift(emitter -> new Collector<T>() {
             @Override
-            public void onCollect(@Nullable T t) {
+            public void onCollect(T t) {
                 if (count.get() > 0) {
-                    collector.collect(t);
+                    emitter.emit(t);
                 }
                 if (count.decrementAndGet() == 0) {
                     onTerminate(null);
+                    emitter.cancel();
                 }
             }
 
             @Override
             public void onTerminate(@Nullable Throwable e) {
-                collector.terminate(e);
+                emitter.over(e);
             }
         });
     }
-
 }

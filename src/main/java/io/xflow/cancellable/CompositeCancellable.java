@@ -14,7 +14,7 @@ public class CompositeCancellable implements Cancellable {
     private Set<Cancellable> cancelableSet = new CopyOnWriteArraySet<>();
 
     @Override
-    public void cancel() throws Throwable {
+    public void cancel() {
         if (cancelFlag.compareAndSet(false, true)) {
             for (Cancellable disposable : cancelableSet) {
                 disposable.cancel();
@@ -27,16 +27,12 @@ public class CompositeCancellable implements Cancellable {
     protected void onCancel() {
     }
 
-    public CompositeCancellable add(Cancellable disposable) {
-        if (disposable != this) {
+    public CompositeCancellable add(Cancellable cancellable) {
+        if (cancellable != this) {
             if (isCancelled()) {
-                try {
-                    disposable.cancel();
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                }
+                cancellable.cancel();
             } else {
-                cancelableSet.add(disposable);
+                cancelableSet.add(cancellable);
             }
         }
         return this;
