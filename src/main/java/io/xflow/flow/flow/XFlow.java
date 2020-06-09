@@ -85,14 +85,17 @@ public abstract class XFlow<T> {
     }
 
     public XFlow<T> take(int limit) {
+        if (limit == 0) {
+            // empty()
+        }
         AtomicInteger count = new AtomicInteger(limit);
         return lift(emitter -> new Collector<T>() {
             @Override
             public void onCollect(T t) {
-                if (count.get() > 0) {
-                    emitter.emit(t);
-                }
-                if (count.decrementAndGet() == 0) {
+                if (count.get() <= 0) return;
+                int rest = count.decrementAndGet();
+                emitter.emit(t);
+                if (rest == 0) {
                     onTerminate(null);
                     emitter.cancel();
                 }

@@ -16,11 +16,11 @@ public class CompositeCancellable implements Cancellable {
     @Override
     public void cancel() {
         if (cancelFlag.compareAndSet(false, true)) {
+            onCancel();
             for (Cancellable disposable : cancelableSet) {
                 disposable.cancel();
             }
             cancelableSet.clear();
-            onCancel();
         }
     }
 

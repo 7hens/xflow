@@ -6,13 +6,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.xflow.cancellable.CompositeCancellable;
 import io.xflow.flow.reply.Reply;
-import io.xflow.func.Cancellable;
 
 /**
  * @author 7hens
  */
-public abstract class CallerEmitter<T> implements Caller<T>, Emitter<T>, Cancellable {
+public abstract class CallerEmitter<T> extends CompositeCancellable implements Caller<T>, Emitter<T> {
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);
 
     protected abstract Collector<T> baseCollector();
@@ -47,8 +47,10 @@ public abstract class CallerEmitter<T> implements Caller<T>, Emitter<T>, Cancell
     }
 
     @Override
-    public void cancel() {
+    protected void onCancel() {
+        super.onCancel();
         over(new CancellationException());
+//        throw new RuntimeException();
     }
 
     public static <T> CallerEmitter<T> of(Collector<T> collector) {

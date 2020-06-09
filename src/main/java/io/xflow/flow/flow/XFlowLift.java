@@ -4,8 +4,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import io.xflow.cancellable.CompositeCancellable;
-import io.xflow.flow.caller.Collector;
 import io.xflow.flow.caller.CallerEmitter;
+import io.xflow.flow.caller.Collector;
 import io.xflow.func.Cancellable;
 
 @ApiStatus.Internal
@@ -20,12 +20,12 @@ class XFlowLift<T, R> extends XFlow<R> {
 
     @Override
     public Cancellable collect(@NotNull Collector<R> collector) {
-        CompositeCancellable cancellable = new CompositeCancellable();
         try {
-            cancellable.add(upFlow.collect(operator.apply(CallerEmitter.of(collector))));
+            CallerEmitter<R> emitter = CallerEmitter.of(collector);
+            emitter.add(upFlow.collect(operator.apply(emitter)));
+            return emitter;
         } catch (Throwable e) {
-            collector.onTerminate(e);
+            throw new RuntimeException(e);
         }
-        return cancellable;
     }
 }

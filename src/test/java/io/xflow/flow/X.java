@@ -26,6 +26,9 @@ public class X {
             @Override
             public void onTerminate(Throwable e) {
                 log("[" + name + "] Collector.terminate: " + e);
+                if (e != null) {
+                    throw new RuntimeException(e);
+                }
             }
         };
     }
