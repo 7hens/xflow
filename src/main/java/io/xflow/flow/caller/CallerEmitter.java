@@ -12,10 +12,13 @@ import io.xflow.flow.reply.Reply;
 /**
  * @author 7hens
  */
-public abstract class CallerEmitter<T> extends CompositeCancellable implements Caller<T>, Emitter<T> {
+public class CallerEmitter<T> extends CompositeCancellable implements Caller<T>, Emitter<T> {
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);
+    private final Collector<T> collector;
 
-    protected abstract Collector<T> baseCollector();
+    public CallerEmitter(Collector<T> collector) {
+        this.collector = collector;
+    }
 
     @Override
     public void receive(@NotNull Reply<T> reply) {
@@ -36,13 +39,13 @@ public abstract class CallerEmitter<T> extends CompositeCancellable implements C
     @Override
     public void emit(T value) {
         if (isTerminated.get()) return;
-        baseCollector().onCollect(value);
+        collector.onCollect(value);
     }
 
     @Override
     public void over(@Nullable Throwable e) {
         if (isTerminated.compareAndSet(false, true)) {
-            baseCollector().onTerminate(e);
+            collector.onTerminate(e);
         }
     }
 
@@ -51,14 +54,5 @@ public abstract class CallerEmitter<T> extends CompositeCancellable implements C
         super.onCancel();
         over(new CancellationException());
 //        throw new RuntimeException();
-    }
-
-    public static <T> CallerEmitter<T> of(Collector<T> collector) {
-        return new CallerEmitter<T>() {
-            @Override
-            protected Collector<T> baseCollector() {
-                return collector;
-            }
-        };
     }
 }

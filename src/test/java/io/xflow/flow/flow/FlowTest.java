@@ -2,10 +2,7 @@ package io.xflow.flow.flow;
 
 import org.junit.Test;
 
-import java.util.concurrent.CountDownLatch;
-
 import io.xflow.flow.X;
-import io.xflow.scheduler.RxScheduler;
 
 /**
  * @author 7hens

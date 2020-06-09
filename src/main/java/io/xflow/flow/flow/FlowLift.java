@@ -3,7 +3,6 @@ package io.xflow.flow.flow;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import io.xflow.cancellable.CompositeCancellable;
 import io.xflow.flow.caller.CallerEmitter;
 import io.xflow.flow.caller.Collector;
 import io.xflow.func.Cancellable;
@@ -21,7 +20,7 @@ class FlowLift<T, R> extends Flow<R> {
     @Override
     public Cancellable collect(@NotNull Collector<R> collector) {
         try {
-            CallerEmitter<R> emitter = CallerEmitter.of(collector);
+            CallerEmitter<R> emitter = new CallerEmitter<>(collector);
             emitter.add(upFlow.collect(operator.apply(emitter)));
             return emitter;
         } catch (Throwable e) {

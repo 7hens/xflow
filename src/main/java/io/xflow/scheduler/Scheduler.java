@@ -1,15 +1,14 @@
 package io.xflow.scheduler;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-import io.xflow.func.Cancellable;
 import io.xflow.cancellable.CompositeCancellable;
+import io.xflow.func.Cancellable;
 
 /**
  * @author 7hens
  */
-public abstract class RxScheduler {
+public abstract class Scheduler {
     public abstract Cancellable schedule(Runnable runnable, long delay, TimeUnit unit);
 
     public Cancellable schedule(Runnable runnable) {
@@ -27,13 +26,5 @@ public abstract class RxScheduler {
                 cancellable.add(schedule(this, period, unit));
             }
         }, initialDelay, unit));
-    }
-
-    public static RxScheduler io() {
-        return ExecutorScheduler.io();
-    }
-
-    public static RxScheduler fromExecutor(Executor executor) {
-        return new ExecutorScheduler(executor);
     }
 }

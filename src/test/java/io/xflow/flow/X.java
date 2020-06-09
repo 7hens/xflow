@@ -5,7 +5,8 @@ import java.util.concurrent.Executors;
 
 import io.xflow.flow.caller.Collector;
 import io.xflow.func.Consumer;
-import io.xflow.scheduler.RxScheduler;
+import io.xflow.scheduler.Scheduler;
+import io.xflow.scheduler.Schedulers;
 
 /**
  * @author 7hens
@@ -40,8 +41,8 @@ public class X {
         return Thread.currentThread().getName();
     }
 
-    public static RxScheduler scheduler(String name) {
-        return RxScheduler.fromExecutor(Executors.newFixedThreadPool(2, runnable -> {
+    public static Scheduler scheduler(String name) {
+        return Schedulers.from(Executors.newFixedThreadPool(2, runnable -> {
             Thread thread = new Thread(runnable);
             thread.setName(name);
             return thread;

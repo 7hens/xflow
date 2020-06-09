@@ -15,28 +15,7 @@ import io.xflow.func.Cancellable;
 /**
  * @author 7hens
  */
-class ExecutorScheduler extends RxScheduler {
-    private static volatile RxScheduler IO;
-
-    public static RxScheduler io() {
-        if (IO == null) {
-            synchronized (ExecutorScheduler.class) {
-                if (IO == null) {
-                    ThreadPoolExecutor executor = new ThreadPoolExecutor(16, 32,
-                            10, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(100),
-                            new RejectedExecutionHandler() {
-                                @Override
-                                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                                }
-                            });
-                    executor.allowsCoreThreadTimeOut();
-                    IO = new ExecutorScheduler(executor);
-                }
-            }
-        }
-        return IO;
-    }
-
+class ExecutorScheduler extends Scheduler {
     private final Executor executor;
 
     ExecutorScheduler(Executor executor) {
@@ -63,9 +42,9 @@ class ExecutorScheduler extends RxScheduler {
         }, delay, unit);
     }
 
-    private static volatile RxScheduler scheduledHelper;
+    private static volatile Scheduler scheduledHelper;
 
-    private static RxScheduler getScheduledHelper() {
+    private static Scheduler getScheduledHelper() {
         if (scheduledHelper == null) {
             synchronized (ExecutorScheduler.class) {
                 if (scheduledHelper == null) {

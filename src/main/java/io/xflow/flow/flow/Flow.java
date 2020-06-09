@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.xflow.cancellable.CompositeCancellable;
 import io.xflow.flow.callee.ArrayCallee;
 import io.xflow.flow.callee.Callee;
 import io.xflow.flow.caller.CallerEmitter;
@@ -15,7 +14,7 @@ import io.xflow.flow.reply.Replies;
 import io.xflow.func.Cancellable;
 import io.xflow.func.Consumer;
 import io.xflow.func.Predicate;
-import io.xflow.scheduler.RxScheduler;
+import io.xflow.scheduler.Scheduler;
 
 /**
  * @author 7hens
@@ -32,7 +31,7 @@ public abstract class Flow<T> {
         return new Flow<T>() {
             @Override
             public Cancellable collect(@NotNull Collector<T> collector) {
-                CallerEmitter<T> caller = CallerEmitter.of(collector);
+                CallerEmitter<T> caller = new CallerEmitter<>(collector);
                 callee.reply(caller);
                 return caller;
             }
@@ -125,31 +124,12 @@ public abstract class Flow<T> {
         });
     }
 
-    public Flow<T> flowOn(RxScheduler scheduler) {
+    public Flow<T> flowOn(Scheduler scheduler) {
         Flow<T> upFlow = this;
         return new Flow<T>() {
             @Override
             public Cancellable collect(@NotNull Collector<T> collector) {
-                CompositeCancellable cancellable = new CompositeCancellable();
-//                cancellable.add(scheduler.schedule(() -> {
-//                    cancellable.add(upFlow.collect(collector));
-//                }));
-                cancellable.add(upFlow.collect(new Collector<T>() {
-                    @Override
-                    public void onCollect(T t) {
-                        cancellable.add(scheduler.schedule(() -> {
-                            collector.onCollect(t);
-                        }));
-                    }
-
-                    @Override
-                    public void onTerminate(@Nullable Throwable e) {
-                        cancellable.add(scheduler.schedule(() -> {
-                            collector.onTerminate(e);
-                        }));
-                    }
-                }));
-                return cancellable;
+                return upFlow.collect(collector);
             }
         };
     }
