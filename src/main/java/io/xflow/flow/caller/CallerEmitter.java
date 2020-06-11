@@ -3,13 +3,15 @@ package io.xflow.flow.caller;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.xflow.cancellable.CompositeCancellable;
-import io.xflow.flow.callee.Callee;
 import io.xflow.flow.reply.Reply;
+import io.xflow.func.Action;
+import io.xflow.func.Functions;
 import io.xflow.scheduler.Scheduler;
 
 /**
@@ -17,9 +19,9 @@ import io.xflow.scheduler.Scheduler;
  */
 public class CallerEmitter<T> extends CompositeCancellable implements Caller<T>, Emitter<T> {
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);
-    private final AtomicInteger restCount = new AtomicInteger(1);
     private final Scheduler scheduler;
     private final Collector<T> collector;
+    private final Queue<Action> actionQueue = new LinkedList<>();
 
     public CallerEmitter(Scheduler scheduler, Collector<T> collector) {
         this.scheduler = scheduler;
@@ -30,71 +32,72 @@ public class CallerEmitter<T> extends CompositeCancellable implements Caller<T>,
     public void receive(@NotNull Reply<T> reply) {
         try {
             if (reply.over()) {
-                over(reply.error());
+                over(reply.error(), Functions.emptyAction());
                 return;
             }
-            emit(reply.value(), reply.callee());
+            emit(reply.value(), () -> {
+                if (!isTerminated.get()) {
+                    reply.callee().reply(this);
+                }
+            });
         } catch (Throwable e) {
-            over(e);
+            over(e, Functions.emptyAction());
         }
     }
 
-    private void emit(T value, Callee<T> callee) {
-        if (isTerminated.get()) return;
-        restCount.getAndIncrement();
-        scheduler.schedule(() -> {
-            if (isTerminated.get()) return;
+    @Override
+    public void emit(T value, Action action) {
+        handle(() -> {
             try {
-                collector.onEach(value);
-                if (restCount.decrementAndGet() <= 0) {
-                    over(null);
-                } else if (callee != null && !isTerminated.get()) {
-                    callee.reply(this);
-                }
+                collector.onEach(value, action);
             } catch (Throwable e) {
-                over(e);
+                over(e, Functions.emptyAction());
             }
         });
     }
 
     @Override
-    public void emit(T value) {
-        emit(value, null);
-    }
-
-    @Override
-    public void over(@Nullable Throwable e) {
-        if (isTerminated.get()) return;
-        scheduler.schedule(() -> {
-            if (isTerminated.get()) return;
-            if (e == null) {
-                if (restCount.decrementAndGet() <= 0 && isTerminated.compareAndSet(false, true)) {
-                    collector.onTerminate(null);
+    public void over(@Nullable Throwable e, Action action) {
+        handle(() -> {
+            if (isTerminated.compareAndSet(false, true)) {
+                if (e == null) {
+                    collector.onTerminate(null, action);
+                } else {
+                    collector.onTerminate(e, action);
                 }
-            } else if (isTerminated.compareAndSet(false, true)) {
-                collector.onTerminate(e);
+                actionQueue.clear();
             }
         });
+    }
+
+    private void handle(Action action) {
+        if (isTerminated.get()) return;
+        actionQueue.add(action);
+        add(scheduler.schedule(() -> {
+            while (!actionQueue.isEmpty() && !isTerminated.get()) {
+                //noinspection ConstantConditions
+                actionQueue.poll().run();
+            }
+        }));
     }
 
     @Override
     protected void onCancel() {
         super.onCancel();
-        over(new CancellationException());
-        throw new RuntimeException();
+        over(new CancellationException(), Functions.emptyAction());
     }
 
     public Collector<T> collector() {
         CallerEmitter<T> emitter = this;
         return new Collector<T>() {
             @Override
-            public void onEach(T t) {
-                emitter.emit(t);
+            public void onEach(T t, Action action) {
+                emitter.emit(t, action);
             }
 
             @Override
-            public void onTerminate(@Nullable Throwable e) {
-                emitter.over(e);
+            public void onTerminate(@Nullable Throwable e, Action action) {
+                emitter.over(e, action);
             }
         };
     }

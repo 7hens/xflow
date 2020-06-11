@@ -27,10 +27,11 @@ public class FlowTest {
     @Test
     public void take() {
         Flow.just(1, 2, 3, 4, 5, 6)
-                .onEach(X.consumer("take"))
+                .onCollect(X.collector("take.before"))
+                .flowOn(X.scheduler("A"))
                 .take(2)
                 .onCollect(X.collector("take"))
-//                .flowOn(X.scheduler("A"))
+                .flowOn(X.scheduler("B"))
                 .collect();
         X.delay(2 * 1000);
     }
@@ -38,9 +39,9 @@ public class FlowTest {
     @Test
     public void flowOn() {
         Flow.just(1, 2, 3, 4, 5)
-                .onEach(X.consumer("flowOn.A"))
+                .onCollect(X.collector("flowOn.A"))
                 .flowOn(X.scheduler("A"))
-                .onEach(X.consumer("flowOn.B"))
+                .onCollect(X.collector("flowOn.B"))
                 .flowOn(X.scheduler("B"))
                 .onCollect(X.collector("flowOn.C"))
                 .flowOn(X.scheduler("C"))

@@ -4,6 +4,7 @@ package io.xflow.flow;
 import java.util.concurrent.Executors;
 
 import io.xflow.flow.caller.Collector;
+import io.xflow.func.Action;
 import io.xflow.func.Consumer;
 import io.xflow.scheduler.Scheduler;
 import io.xflow.scheduler.Schedulers;
@@ -23,13 +24,23 @@ public class X {
     public static <T> Collector<T> collector(String name) {
         return new Collector<T>() {
             @Override
-            public void onEach(T t) {
+            public void onEach(T t, Action action) {
                 log("[" + name + "] (#" + threadName() + ") Collector.collect: " + t);
+                try {
+                    action.run();
+                } catch (Throwable throwable) {
+                    throw new RuntimeException(throwable);
+                }
             }
 
             @Override
-            public void onTerminate(Throwable e) {
+            public void onTerminate(Throwable e, Action action) {
                 log("[" + name + "] (#" + threadName() + ") Collector.terminate: " + e);
+                try {
+                    action.run();
+                } catch (Throwable throwable) {
+                    throw new RuntimeException(throwable);
+                }
                 if (e != null) {
                     throw new RuntimeException(e);
                 }
