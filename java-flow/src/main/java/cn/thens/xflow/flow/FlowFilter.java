@@ -10,24 +10,20 @@ import cn.thens.xflow.func.Predicate;
 /**
  * @author 7hens
  */
-class FlowFilter<T> implements Flow.Operator<T, T> {
-    private final Predicate<T> predicate;
-
-    FlowFilter(Predicate<T> predicate) {
-        this.predicate = predicate;
-    }
-
+abstract class FlowFilter<T> implements Flow.Operator<T, T> {
     @Override
     public Collector<T> apply(final Emitter<T> emitter) {
         return new Collector<T>() {
             @Override
             public void onCollect(Reply<T> reply) {
                 if (reply.isTerminated()) {
-                    emitter.error(reply.error());
+                    Throwable error = reply.error();
+                    emitter.error(error);
+                    onTerminated(error);
                 } else {
                     try {
                         T data = reply.data();
-                        if (predicate.test(data)) {
+                        if (test(data)) {
                             emitter.data(data);
                         }
                     } catch (Throwable e) {
@@ -38,8 +34,25 @@ class FlowFilter<T> implements Flow.Operator<T, T> {
         };
     }
 
+    protected abstract boolean test(T data) throws Throwable;
+
+    protected abstract void onTerminated(Throwable e);
+
+    static <T> FlowFilter<T> filter(Predicate<T> predicate) {
+        return new FlowFilter<T>() {
+            @Override
+            protected boolean test(T data) throws Throwable {
+                return predicate.test(data);
+            }
+
+            @Override
+            protected void onTerminated(Throwable e) {
+            }
+        };
+    }
+
     static <T, K> FlowFilter<T> distinct(final Func1<T, K> keySelector) {
-        return new FlowFilter<>(new Predicate<T>() {
+        return new FlowFilter<T>() {
             private Set<K> collectedKeys = new HashSet<>();
 
             @Override
@@ -51,7 +64,12 @@ class FlowFilter<T> implements Flow.Operator<T, T> {
                 collectedKeys.add(key);
                 return true;
             }
-        });
+
+            @Override
+            protected void onTerminated(Throwable e) {
+                collectedKeys.clear();
+            }
+        };
     }
 
     static <T> FlowFilter<T> distinct() {
@@ -59,8 +77,8 @@ class FlowFilter<T> implements Flow.Operator<T, T> {
     }
 
     static <T, K> FlowFilter<T> distinctUntilChanged(final Func1<T, K> keySelector) {
-        return new FlowFilter<>(new Predicate<T>() {
-            private K lastKey;
+        return new FlowFilter<T>() {
+            private K lastKey = null;
 
             @Override
             public boolean test(T data) throws Throwable {
@@ -71,7 +89,12 @@ class FlowFilter<T> implements Flow.Operator<T, T> {
                 lastKey = key;
                 return true;
             }
-        });
+
+            @Override
+            protected void onTerminated(Throwable e) {
+                lastKey = null;
+            }
+        };
     }
 
     static <T> FlowFilter<T> distinctUntilChanged() {

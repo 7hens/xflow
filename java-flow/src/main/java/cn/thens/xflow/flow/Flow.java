@@ -50,7 +50,7 @@ public abstract class Flow<T> {
     }
 
     public Flow<T> filter(Predicate<T> predicate) {
-        return transform(new FlowFilter<>(predicate));
+        return transform(FlowFilter.filter(predicate));
     }
 
     public <K> Flow<T> distinct(Func1<T, K> keySelector) {
