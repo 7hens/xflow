@@ -1,2 +1,4 @@
 rootProject.name='rxflow'
 include ':sample'
+include ':java-flow'
+include ':android-flow'
