@@ -51,7 +51,7 @@ public class CollectorHelper<T> implements Collector<T> {
     protected void onCancel() throws Throwable {
     }
 
-    public CollectorHelper<T> onStart(Action1<Cancellable> action) {
+    public final CollectorHelper<T> onStart(Action1<Cancellable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onStart(Cancellable cancellable) throws Throwable {
@@ -61,7 +61,7 @@ public class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public CollectorHelper<T> onEach(Action1<T> action) {
+    public final CollectorHelper<T> onEach(Action1<T> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onEach(T data) throws Throwable {
@@ -71,7 +71,7 @@ public class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public CollectorHelper<T> onTerminate(final Action1<Throwable> action) {
+    public final CollectorHelper<T> onTerminate(final Action1<Throwable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onTerminate(Throwable error) throws Throwable {
@@ -81,7 +81,7 @@ public class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public CollectorHelper<T> onComplete(Action0 action) {
+    public final CollectorHelper<T> onComplete(Action0 action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onComplete() throws Throwable {
@@ -91,7 +91,7 @@ public class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public CollectorHelper<T> onError(Action1<Throwable> action) {
+    public final CollectorHelper<T> onError(Action1<Throwable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onError(Throwable error) throws Throwable {
@@ -101,7 +101,7 @@ public class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public CollectorHelper<T> onCancel(Action0 action) {
+    public final CollectorHelper<T> onCancel(Action0 action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onCancel() throws Throwable {
