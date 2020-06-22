@@ -17,13 +17,17 @@ class FlowOnCollect<T> implements Flow.Operator<T, T> {
     @Override
     public Collector<T> apply(Emitter<T> emitter) {
         if (collector instanceof CollectorHelper) {
-            ((CollectorHelper<T>) collector).onStart(new CompositeCancellable() {
-                @Override
-                protected void onCancel() {
-                    super.onCancel();
-                    emitter.error(new CancellationException());
-                }
-            });
+            try {
+                ((CollectorHelper<T>) collector).onStart(new CompositeCancellable() {
+                    @Override
+                    protected void onCancel() {
+                        super.onCancel();
+                        emitter.error(new CancellationException());
+                    }
+                });
+            } catch (Throwable e) {
+                emitter.error(e);
+            }
         }
         return new Collector<T>() {
             @Override

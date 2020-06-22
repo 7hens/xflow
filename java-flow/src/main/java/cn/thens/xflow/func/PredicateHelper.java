@@ -11,7 +11,7 @@ import cn.thens.xflow.flow.Flow;
  */
 public abstract class PredicateHelper<T> implements Predicate<T> {
 
-    public PredicateHelper<T> not() {
+    public final PredicateHelper<T> not() {
         PredicateHelper<T> self = this;
         return new PredicateHelper<T>() {
             @Override
@@ -21,7 +21,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public PredicateHelper<T> and(final Predicate<T> other) {
+    public final PredicateHelper<T> and(final Predicate<T> other) {
         PredicateHelper<T> self = this;
         return new PredicateHelper<T>() {
             @Override
@@ -31,7 +31,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public PredicateHelper<T> or(final Predicate<T> other) {
+    public final PredicateHelper<T> or(final Predicate<T> other) {
         PredicateHelper<T> self = this;
         return new PredicateHelper<T>() {
             @Override
@@ -41,7 +41,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public PredicateHelper<T> xor(final Predicate<T> other) {
+    public final PredicateHelper<T> xor(final Predicate<T> other) {
         PredicateHelper<T> self = this;
         return new PredicateHelper<T>() {
             @Override
@@ -120,7 +120,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         final AtomicBoolean hasNext = new AtomicBoolean(true);
         flow.onCollect(new CollectorHelper() {
             @Override
-            protected void onTerminate(Throwable error) {
+            protected void onTerminate(Throwable error) throws Throwable {
                 super.onTerminate(error);
                 hasNext.set(false);
             }

@@ -64,7 +64,7 @@ public class FlowEmitter<T> implements Emitter<T> {
         })////////////
                 .onCollect(new CollectorHelper<T>() {
                     @Override
-                    protected void onTerminate(Throwable e) {
+                    protected void onTerminate(Throwable e) throws Throwable {
                         super.onTerminate(e);
                         Emitter<T> emitter = emitterRef.get();
                         if (emitter != null) {
