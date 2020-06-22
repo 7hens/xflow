@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import cn.thens.xflow.func.Func0;
 import cn.thens.xflow.func.Funcs;
 import cn.thens.xflow.func.Predicate;
-import cn.thens.xflow.func.Predicates;
+import cn.thens.xflow.func.PredicateHelper;
 
 
 /**
@@ -54,11 +54,11 @@ abstract class FlowTakeFirst<T> implements Flow.Operator<T, T> {
     }
 
     static <T> FlowTakeFirst<T> first() {
-        return create(Predicates.always(), Funcs.result(Reply.error(new NoSuchElementException())));
+        return create(PredicateHelper.always(), Funcs.result(Reply.error(new NoSuchElementException())));
     }
 
     static <T> FlowTakeFirst<T> firstOrDefault(final T defaultValue) {
-        return create(Predicates.always(), Funcs.result(Reply.data(defaultValue)));
+        return create(PredicateHelper.always(), Funcs.result(Reply.data(defaultValue)));
     }
 
     static <T> FlowTakeFirst<T> first(Predicate<T> predicate) {

@@ -1,6 +1,8 @@
-package cn.thens.xflow;
+package cn.thens.xflow.flow;
 
 import org.junit.Test;
+
+import cn.thens.xflow.X;
 
 /**
  * @author 7hens

@@ -1,6 +1,5 @@
 package cn.thens.xflow.flow;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.cancellable.Cancellable;
@@ -9,43 +8,39 @@ import cn.thens.xflow.cancellable.Cancellable;
  * @author 7hens
  */
 class FlowFlatSwitch<T> implements Flow.Operator<Flow<T>, T> {
+    private final boolean delayError;
+
+    FlowFlatSwitch(boolean delayError) {
+        this.delayError = delayError;
+    }
+
     @Override
     public Collector<Flow<T>> apply(Emitter<T> emitter) {
         return new CollectorHelper<Flow<T>>() {
-            private final AtomicInteger restFlowCount = new AtomicInteger(1);
-            private AtomicReference<Cancellable> lastFlowCancellable = new AtomicReference<>(null);
+            final AtomicReference<Cancellable> lastCancellable = new AtomicReference<>(null);
+            final FlowFlatHelper helper = FlowFlatHelper.create(delayError, emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {
-                if (reply.isTerminated()) {
-                    Throwable error = reply.error();
-                    if (error == null) {
-                        if (restFlowCount.decrementAndGet() == 0) {
-                            emitter.complete();
-                        }
-                    } else {
-                        emitter.error(error);
-                    }
-                    return;
-                }
-                Flow<T> flow = reply.data();
-                restFlowCount.getAndIncrement();
-                Cancellable cancellable = lastFlowCancellable.get();
+                helper.onOuterCollect(reply);
+                if (reply.isTerminated()) return;
+                Cancellable cancellable = lastCancellable.get();
                 if (cancellable != null) {
                     cancellable.cancel();
                 }
-                lastFlowCancellable.set(flow.collect(downCollector, emitter.scheduler()));
+                Flow<T> flow = reply.data();
+                lastCancellable.set(flow.collect(innerCollector, emitter.scheduler()));
             }
 
-            private final Collector<T> downCollector = new Collector<T>() {
+            private final Collector<T> innerCollector = new Collector<T>() {
                 @Override
                 public void onCollect(Reply<T> reply) {
-                    if (reply.isTerminated()) {
-                        if (restFlowCount.decrementAndGet() == 0) {
-                            emitter.complete();
-                        }
+                    if (reply.isCancel()) {
+                        helper.onInnerCollect(Reply.complete());
                         return;
                     }
+                    helper.onInnerCollect(reply);
+                    if (reply.isTerminated()) return;
                     emitter.emit(reply);
                 }
             };

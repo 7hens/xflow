@@ -3,6 +3,8 @@ apply plugin: 'java-library'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     compileOnly 'org.jetbrains:annotations:19.0.0'
+
+    testImplementation 'junit:junit:4.13'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import cn.thens.xflow.func.Func1;
 import cn.thens.xflow.func.Predicate;
+import cn.thens.xflow.func.PredicateHelper;
 
 
 /**
@@ -99,5 +100,9 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
 
     static <T> FlowFilter<T> distinctUntilChanged() {
         return distinctUntilChanged(FuncUtils.self());
+    }
+
+    static <T> FlowFilter<T> skip(int count) {
+        return FlowFilter.filter(PredicateHelper.skip(count));
     }
 }

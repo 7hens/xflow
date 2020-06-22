@@ -69,6 +69,10 @@ public abstract class Flow<T> {
         return transform(FlowFilter.distinctUntilChanged());
     }
 
+    public Flow<T> skip(int count) {
+        return transform(FlowFilter.skip(count));
+    }
+
     public Flow<T> take(int count) {
         return transform(new FlowTake<>(count));
     }

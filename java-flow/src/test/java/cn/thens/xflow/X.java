@@ -3,8 +3,11 @@ package cn.thens.xflow;
 
 import java.util.concurrent.Executors;
 
-import io.xflow.cancellable.Cancellable;
-import io.xflow.scheduler.Scheduler;
+import cn.thens.xflow.cancellable.Cancellable;
+import cn.thens.xflow.flow.Collector;
+import cn.thens.xflow.flow.CollectorHelper;
+import cn.thens.xflow.scheduler.Scheduler;
+
 
 /**
  * @author 7hens

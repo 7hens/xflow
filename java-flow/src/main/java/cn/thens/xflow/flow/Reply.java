@@ -1,5 +1,7 @@
 package cn.thens.xflow.flow;
 
+import java.util.concurrent.CancellationException;
+
 /**
  * @author 7hens
  */
@@ -16,6 +18,10 @@ public abstract class Reply<T> {
 
     public boolean isError() {
         return isTerminated() && error() != null;
+    }
+
+    public boolean isCancel() {
+        return isTerminated() && error() instanceof CancellationException;
     }
 
     public static <T> Reply<T> data(final T data) {

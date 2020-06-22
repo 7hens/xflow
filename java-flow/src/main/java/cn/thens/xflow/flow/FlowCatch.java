@@ -3,7 +3,7 @@ package cn.thens.xflow.flow;
 
 import cn.thens.xflow.func.Func1;
 import cn.thens.xflow.func.Predicate;
-import cn.thens.xflow.func.Predicates;
+import cn.thens.xflow.func.PredicateHelper;
 
 /**
  * @author 7hens
@@ -67,10 +67,10 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
     }
 
     static <T> Flow<T> retry(Flow<T> upFlow) {
-        return retry(upFlow, Predicates.always());
+        return retry(upFlow, PredicateHelper.always());
     }
 
     static <T> Flow<T> retry(Flow<T> upFlow, int count) {
-        return retry(upFlow, Predicates.limit(count));
+        return retry(upFlow, PredicateHelper.take(count));
     }
 }
