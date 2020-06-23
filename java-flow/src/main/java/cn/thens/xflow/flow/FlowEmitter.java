@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.scheduler.Scheduler;
+import cn.thens.xflow.scheduler.Schedulers;
 
 /**
  * @author 7hens
@@ -19,7 +20,7 @@ public class FlowEmitter<T> implements Emitter<T> {
                 emitter.emit(reply);
             }
         }
-    }, Scheduler.io());
+    }, Schedulers.core());
 
     @Override
     public void emit(Reply<T> reply) {

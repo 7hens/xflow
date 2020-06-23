@@ -1,6 +1,5 @@
 package cn.thens.xflow.scheduler;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import cn.thens.xflow.cancellable.Cancellable;
@@ -34,14 +33,4 @@ public abstract class Scheduler {
     public CancellableScheduler cancellable() {
         return new CancellableScheduler(this);
     }
-
-    public static Scheduler from(final Executor executor) {
-        return new SchedulerFromExecutor(executor);
-    }
-
-    public static Scheduler io() {
-        return SchedulerFromExecutor.io();
-    }
-
-
 }

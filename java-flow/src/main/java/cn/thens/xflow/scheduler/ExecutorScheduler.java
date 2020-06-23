@@ -1,14 +1,16 @@
 package cn.thens.xflow.scheduler;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.cancellable.CompositeCancellable;
@@ -16,38 +18,11 @@ import cn.thens.xflow.cancellable.CompositeCancellable;
 /**
  * @author 7hens
  */
-class SchedulerFromExecutor extends Scheduler {
-    private static volatile Scheduler IO;
-
-    public static Scheduler io() {
-        if (IO == null) {
-            synchronized (SchedulerFromExecutor.class) {
-                if (IO == null) {
-                    ThreadPoolExecutor executor = new ThreadPoolExecutor(16, 32,
-                            10, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100),
-                            new ThreadFactory() {
-                                @Override
-                                public Thread newThread(Runnable runnable) {
-                                    return new Thread(runnable);
-                                }
-                            },
-                            new RejectedExecutionHandler() {
-                                @Override
-                                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                                    throw new RuntimeException();
-                                }
-                            });
-                    executor.allowsCoreThreadTimeOut();
-                    IO = new SchedulerFromExecutor(executor);
-                }
-            }
-        }
-        return IO;
-    }
+class ExecutorScheduler extends Scheduler {
 
     private final Executor executor;
 
-    public SchedulerFromExecutor(Executor executor) {
+    public ExecutorScheduler(Executor executor) {
         this.executor = executor;
     }
 
@@ -75,12 +50,44 @@ class SchedulerFromExecutor extends Scheduler {
 
     private static Scheduler getScheduledHelper() {
         if (scheduledHelper == null) {
-            synchronized (SchedulerFromExecutor.class) {
+            synchronized (ExecutorScheduler.class) {
                 if (scheduledHelper == null) {
-                    scheduledHelper = new SchedulerFromExecutor(Executors.newSingleThreadScheduledExecutor());
+                    scheduledHelper = new ExecutorScheduler(Executors.newSingleThreadScheduledExecutor());
                 }
             }
         }
         return scheduledHelper;
+    }
+
+    static class MyThreadFactory implements ThreadFactory {
+        private final AtomicLong number = new AtomicLong();
+        final String prefix;
+        final int priority;
+
+        MyThreadFactory(String prefix, int priority) {
+            this.prefix = prefix;
+            this.priority = priority;
+        }
+
+        MyThreadFactory(String prefix) {
+            this(prefix, Thread.NORM_PRIORITY);
+        }
+
+        @Override
+        public Thread newThread(@NotNull Runnable runnable) {
+            Thread thread = new Thread(runnable);
+            thread.setName(prefix + "-" + number.incrementAndGet());
+            thread.setPriority(priority);
+            thread.setDaemon(true);
+            return thread;
+        }
+    }
+
+    static ExecutorScheduler newScheduler(String name, int expectedThreadCount) {
+        int processorCount = Runtime.getRuntime().availableProcessors();
+        int maxThreadCount = Math.max(processorCount, expectedThreadCount);
+        return new ExecutorScheduler(new ThreadPoolExecutor(processorCount, maxThreadCount,
+                60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1024),
+                new ExecutorScheduler.MyThreadFactory(name)));
     }
 }

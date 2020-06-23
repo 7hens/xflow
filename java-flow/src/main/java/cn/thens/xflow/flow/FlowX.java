@@ -4,7 +4,7 @@ package cn.thens.xflow.flow;
  * @author 7hens
  */
 @SuppressWarnings("unchecked")
-public final class FlowOperators {
+public final class FlowX {
     private static Flow.Operator FLAT_DELAY_ERRORS = new FlowFlatDelayErrors();
 
     public static <T> Flow.Operator<Flow<T>, Flow<T>> delayErrors() {

@@ -8,6 +8,7 @@ import cn.thens.xflow.func.Action1;
 import cn.thens.xflow.func.Func1;
 import cn.thens.xflow.func.Predicate;
 import cn.thens.xflow.scheduler.Scheduler;
+import cn.thens.xflow.scheduler.Schedulers;
 
 /**
  * @author 7hens
@@ -22,7 +23,7 @@ public abstract class Flow<T> {
 
     @SuppressWarnings("UnusedReturnValue")
     public Cancellable collect() {
-        return collect(new CollectorHelper<T>(), Scheduler.io());
+        return collect(new CollectorHelper<T>(), Schedulers.core());
     }
 
     public Flow<T> flowOn(Scheduler upScheduler) {
@@ -47,6 +48,10 @@ public abstract class Flow<T> {
 
     public <R> Flow<R> map(Func1<T, R> mapper) {
         return transform(new FlowMap<>(mapper));
+    }
+
+    public <R> Flow<R> flatMap(Func1<T, Flow<R>> mapper) {
+        return map(mapper).transform(FlowX.flatMerge());
     }
 
     public Flow<T> filter(Predicate<T> predicate) {
