@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Funcs;
 import cn.thens.xflow.func.Predicate;
 import cn.thens.xflow.func.PredicateHelper;
 
@@ -74,7 +75,7 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
     }
 
     static <T> FlowFilter<T> distinct() {
-        return distinct(FuncUtils.self());
+        return distinct(Funcs.self());
     }
 
     static <T, K> FlowFilter<T> distinctUntilChanged(final Func1<T, K> keySelector) {
@@ -99,7 +100,7 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
     }
 
     static <T> FlowFilter<T> distinctUntilChanged() {
-        return distinctUntilChanged(FuncUtils.self());
+        return distinctUntilChanged(Funcs.self());
     }
 
     static <T> FlowFilter<T> skip(int count) {

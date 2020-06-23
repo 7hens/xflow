@@ -3,11 +3,11 @@ package cn.thens.xflow.flow;
 /**
  * @author 7hens
  */
-class FlowFlatMerge<T> implements Flow.Operator<Flow<T>, T> {
+class FlowXFlatMerge<T> implements Flow.Operator<Flow<T>, T> {
     @Override
     public Collector<Flow<T>> apply(Emitter<T> emitter) {
         return new Collector<Flow<T>>() {
-            final FlowFlatHelper helper = FlowFlatHelper.create(emitter);
+            final FlowXFlatHelper helper = FlowXFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {

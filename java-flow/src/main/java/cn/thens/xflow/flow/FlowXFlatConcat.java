@@ -7,13 +7,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author 7hens
  */
-public class FlowFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
+public class FlowXFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
     @Override
     public Collector<Flow<T>> apply(final Emitter<T> emitter) {
         return new Collector<Flow<T>>() {
             final Queue<Flow<T>> flowQueue = new LinkedList<>();
             final AtomicBoolean isCollecting = new AtomicBoolean(false);
-            final FlowFlatHelper helper = FlowFlatHelper.create(emitter);
+            final FlowXFlatHelper helper = FlowXFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {

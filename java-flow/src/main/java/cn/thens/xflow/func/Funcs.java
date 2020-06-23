@@ -24,6 +24,18 @@ public final class Funcs {
         }
     }
 
+    private static Func1 SELF = new Func1() {
+        @Override
+        public Object invoke(Object o) {
+            return o;
+        }
+    };
+
+    @SuppressWarnings("unchecked")
+    public static <P1, R> Func1<P1, R> self() {
+        return SELF;
+    }
+
     private static Result EMPTY_RESULT = result(null);
 
     @SuppressWarnings("unchecked")

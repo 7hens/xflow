@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author 7hens
  */
-public class FlowFlatDelayErrors<T> implements Flow.Operator<Flow<T>, Flow<T>> {
+public class FlowXDelayErrors<T> implements Flow.Operator<Flow<T>, Flow<T>> {
 
     @Override
     public Collector<Flow<T>> apply(final Emitter<Flow<T>> emitter) {
