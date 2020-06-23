@@ -1,4 +1,9 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'maven-publish'
+
+group = "com.github.7hens.xflow"
+version = "-SNAPSHOT"
 
 android {
     compileSdkVersion 29

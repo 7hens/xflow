@@ -1,5 +1,8 @@
 # XFlow
 
+[![jitpack](https://jitpack.io/v/7hens/xflow.svg)](https://jitpack.io/#7hens/xflow)
+[![license](https://img.shields.io/github/license/7hens/xflow.svg)](https://github.com/7hens/xflow/blob/master/LICENSE)
+
 ## Setting up Dependencies
 
 ```groovy
