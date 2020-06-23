@@ -2,6 +2,7 @@ package cn.thens.xflow.flow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.cancellable.Cancellable;
@@ -35,6 +36,11 @@ public class FlowEmitter<T> implements Emitter<T> {
     @Override
     public void error(Throwable error) {
         collectorEmitter.error(error);
+    }
+
+    @Override
+    public void cancel() {
+        error(new CancellationException());
     }
 
     @Override

@@ -52,7 +52,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
                 collector.onCollect(reply);
                 if (reply.isTerminated()) {
                     scheduler.cancel();
-                    cancel();
+                    super.cancel();
                     return;
                 }
             }
@@ -69,6 +69,11 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
     @Override
     public void error(Throwable error) {
         emit(Reply.error(error));
+    }
+
+    @Override
+    public void cancel() {
+        error(new CancellationException());
     }
 
     @Override

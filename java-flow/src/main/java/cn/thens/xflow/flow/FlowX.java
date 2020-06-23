@@ -1,5 +1,9 @@
 package cn.thens.xflow.flow;
 
+import java.util.concurrent.atomic.AtomicReference;
+
+import cn.thens.xflow.func.Func1;
+
 /**
  * @author 7hens
  */
@@ -21,6 +25,20 @@ public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
             @Override
             public Collector<Up> apply(Emitter<Dn> emitter) {
                 return operator.apply(emitter);
+            }
+        };
+    }
+
+    public static <Up, Dn> FlowX<Up, Dn> from(Func1<Flow<Up>, Flow<Dn>> action) {
+        return new FlowX<Up, Dn>() {
+            @Override
+            public Collector<Up> apply(Emitter<Dn> emitter) {
+                AtomicReference<Emitter<Up>> upEmitterRef = new AtomicReference<>();
+                Flow.create(upEmitterRef::set)
+                        .to(action)
+                        .onCollect(CollectorHelper.from(emitter))
+                        .collect();
+                return reply -> upEmitterRef.get().emit(reply);
             }
         };
     }

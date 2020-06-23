@@ -12,10 +12,10 @@ import cn.thens.xflow.scheduler.Scheduler;
 /**
  * @author 7hens
  */
-public class SchedulerFromLooper extends Scheduler {
+public class LooperScheduler extends Scheduler {
     private final Handler handler;
 
-    SchedulerFromLooper(Looper looper) {
+    LooperScheduler(Looper looper) {
         this.handler = new Handler(looper);
     }
 

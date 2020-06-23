@@ -1,5 +1,7 @@
 package cn.thens.xflow.flow;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -108,6 +110,11 @@ public abstract class Flow<T> {
 
     public Flow<T> timeout(long timeout, TimeUnit unit) {
         return timeout(timeout, unit, Flow.error(new TimeoutException()));
+    }
+
+    @ApiStatus.Experimental
+    public Flow<T> autoCancel(Flow<?> cancelFlow) {
+        return new FlowAutoCancel<>(this, cancelFlow);
     }
 
     public Flow<T> catchError(Func1<Throwable, Flow<T>> resumeFunc) {

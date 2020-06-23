@@ -9,7 +9,7 @@ import cn.thens.xflow.scheduler.Scheduler;
  */
 public final class AndroidSchedulers {
     public static Scheduler from(Looper looper) {
-        return new SchedulerFromLooper(looper);
+        return new LooperScheduler(looper);
     }
 
     private static final Scheduler MAIN_THREAD = from(Looper.getMainLooper());

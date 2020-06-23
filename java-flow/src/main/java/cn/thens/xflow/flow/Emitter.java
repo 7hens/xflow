@@ -14,6 +14,8 @@ public interface Emitter<T> {
 
     void error(Throwable error);
 
+    void cancel();
+
     void complete();
 
     boolean isTerminated();
