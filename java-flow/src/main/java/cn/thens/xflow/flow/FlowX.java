@@ -4,34 +4,54 @@ package cn.thens.xflow.flow;
  * @author 7hens
  */
 @SuppressWarnings("unchecked")
-public final class FlowX {
-    private static Flow.Operator FLAT_DELAY_ERRORS = new FlowXDelayErrors();
+public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
 
-    public static <T> Flow.Operator<Flow<T>, Flow<T>> delayErrors() {
+    public final <T> FlowX<Up, T> then(Flow.Operator<Dn, T> operator) {
+        FlowX<Up, Dn> self = this;
+        return new FlowX<Up, T>() {
+            @Override
+            public Collector<Up> apply(Emitter<T> emitter) {
+                return self.apply(new CollectorEmitter(operator.apply(emitter), emitter.scheduler()));
+            }
+        };
+    }
+
+    public static <Up, Dn> FlowX<Up, Dn> wrap(final Flow.Operator<Up, Dn> operator) {
+        return new FlowX<Up, Dn>() {
+            @Override
+            public Collector<Up> apply(Emitter<Dn> emitter) {
+                return operator.apply(emitter);
+            }
+        };
+    }
+
+    private static FlowX FLAT_DELAY_ERRORS = wrap(new FlowXDelayErrors());
+
+    public static <T> FlowX<Flow<T>, Flow<T>> delayErrors() {
         return FLAT_DELAY_ERRORS;
     }
 
-    private static Flow.Operator FLAT_MERGE = new FlowXFlatMerge();
+    private static FlowX FLAT_MERGE = wrap(new FlowXFlatMerge());
 
-    public static <T> Flow.Operator<Flow<T>, T> flatMerge() {
+    public static <T> FlowX<Flow<T>, T> flatMerge() {
         return FLAT_MERGE;
     }
 
-    private static Flow.Operator FLAT_CONCAT = new FlowXFlatConcat();
+    private static FlowX FLAT_CONCAT = wrap(new FlowXFlatConcat());
 
-    public static <T> Flow.Operator<Flow<T>, T> flatConcat() {
+    public static <T> FlowX<Flow<T>, T> flatConcat() {
         return FLAT_CONCAT;
     }
 
-    private static Flow.Operator FLAT_SWITCH = new FlowXFlatSwitch();
+    private static FlowX FLAT_SWITCH = wrap(new FlowXFlatSwitch());
 
-    public static <T> Flow.Operator<Flow<T>, T> flatSwitch() {
+    public static <T> FlowX<Flow<T>, T> flatSwitch() {
         return FLAT_SWITCH;
     }
 
-    private static Flow.Operator FLAT_ZIP = new FlowXFlatZip();
+    private static FlowX FLAT_ZIP = wrap(new FlowXFlatZip());
 
-    public static <T> Flow.Operator<Flow<T>, T> flatZip() {
+    public static <T> FlowX<Flow<T>, T> flatZip() {
         return FLAT_ZIP;
     }
 }

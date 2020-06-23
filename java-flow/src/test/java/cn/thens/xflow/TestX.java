@@ -1,6 +1,9 @@
 package cn.thens.xflow;
 
 
+import org.junit.Test;
+
+import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,13 +21,29 @@ import cn.thens.xflow.scheduler.Schedulers;
  * @author 7hens
  */
 @SuppressWarnings("ALL")
-public class X {
-    public static void log(String message) {
-        String threadName = Thread.currentThread().getName();
-        System.out.println("(" + threadName + ") " + message);
+public class TestX {
+    private static String getTestMethodName(StackTraceElement[] traceElements) {
+        for (StackTraceElement traceElement : traceElements) {
+            try {
+                String className = traceElement.getClassName();
+                String methodName = traceElement.getMethodName();
+                Class<?> cls = TestX.class.getClassLoader().loadClass(className);
+                Method method = cls.getDeclaredMethod(methodName);
+                if (method.isAnnotationPresent(Test.class)) {
+                    return methodName;
+                }
+            } catch (Throwable ignore) {
+            }
+        }
+        return "";
+    }
+
+    private static String getTestMethodName() {
+        return getTestMethodName(Thread.currentThread().getStackTrace());
     }
 
     public static <T> Collector<T> collector(String name) {
+        Logger logger = logger();
         return new CollectorHelper<T>() {
             @Override
             protected void onStart(Cancellable cancellable) throws Throwable {
@@ -51,7 +70,7 @@ public class X {
             }
 
             private void log(String message) {
-                X.log("[" + name + "] " + message);
+                logger.log("[" + name + "] " + message);
             }
         };
     }
@@ -93,5 +112,18 @@ public class X {
                 return null;
             }
         };
+    }
+
+    public static Logger logger() {
+        return new Logger();
+    }
+
+    public static class Logger {
+        private String testName = getTestMethodName();
+
+        public void log(String message) {
+            String threadName = Thread.currentThread().getName();
+            System.out.println(testName + ": (" + threadName + ") " + message);
+        }
     }
 }
