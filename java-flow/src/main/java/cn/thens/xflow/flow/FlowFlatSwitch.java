@@ -8,17 +8,11 @@ import cn.thens.xflow.cancellable.Cancellable;
  * @author 7hens
  */
 class FlowFlatSwitch<T> implements Flow.Operator<Flow<T>, T> {
-    private final boolean delayError;
-
-    FlowFlatSwitch(boolean delayError) {
-        this.delayError = delayError;
-    }
-
     @Override
     public Collector<Flow<T>> apply(Emitter<T> emitter) {
         return new CollectorHelper<Flow<T>>() {
             final AtomicReference<Cancellable> lastCancellable = new AtomicReference<>(null);
-            final FlowFlatHelper helper = FlowFlatHelper.create(delayError, emitter);
+            final FlowFlatHelper helper = FlowFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {

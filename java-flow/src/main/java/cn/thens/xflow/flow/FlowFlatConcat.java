@@ -8,18 +8,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author 7hens
  */
 public class FlowFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
-    private final boolean delayError;
-
-    FlowFlatConcat(boolean delayError) {
-        this.delayError = delayError;
-    }
-
     @Override
     public Collector<Flow<T>> apply(final Emitter<T> emitter) {
         return new Collector<Flow<T>>() {
             final Queue<Flow<T>> flowQueue = new LinkedList<>();
             final AtomicBoolean isCollecting = new AtomicBoolean(false);
-            final FlowFlatHelper helper = FlowFlatHelper.create(delayError, emitter);
+            final FlowFlatHelper helper = FlowFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {
@@ -37,7 +31,10 @@ public class FlowFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
                 @Override
                 public void onCollect(Reply<T> reply) {
                     helper.onInnerCollect(reply);
-                    if (emitter.isTerminated()) return;
+                    if (emitter.isTerminated()) {
+                        flowQueue.clear();
+                        return;
+                    }
                     isCollecting.set(true);
                     if (reply.isTerminated()) {
                         if (!flowQueue.isEmpty()) {

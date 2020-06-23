@@ -4,16 +4,10 @@ package cn.thens.xflow.flow;
  * @author 7hens
  */
 class FlowFlatMerge<T> implements Flow.Operator<Flow<T>, T> {
-    private final boolean delayError;
-
-    FlowFlatMerge(boolean delayError) {
-        this.delayError = delayError;
-    }
-
     @Override
     public Collector<Flow<T>> apply(Emitter<T> emitter) {
         return new Collector<Flow<T>>() {
-            final FlowFlatHelper helper = FlowFlatHelper.create(delayError, emitter);
+            final FlowFlatHelper helper = FlowFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {
