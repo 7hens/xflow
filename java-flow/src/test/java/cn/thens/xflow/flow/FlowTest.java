@@ -15,9 +15,17 @@ public class FlowTest {
     public void take() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(TestX.collector("A"))
-                .take(2)
+                .take(0)
                 .map(it -> it + "..")
                 .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void takeUtil() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .takeUntil(3L)
+                .onCollect(TestX.collector("A"))
                 .to(TestX.collect());
     }
 
@@ -65,23 +73,6 @@ public class FlowTest {
                 .onCollect(TestX.collector("A"))
                 .retry(3)
                 .onCollect(TestX.collector("B"))
-                .to(TestX.collect());
-    }
-
-    @Test
-    public void cancel() {
-        Flow.interval(1, TimeUnit.SECONDS)
-                .onCollect(TestX.collector("A"))
-                .onCollect(new CollectorHelper<Long>() {
-                    @Override
-                    protected void onStart(Cancellable cancellable) throws Throwable {
-                        super.onStart(cancellable);
-                        Flow.timer(3, TimeUnit.SECONDS)
-                                .onCollect(CollectorHelper.<Long>get()
-                                        .onTerminate(it -> cancellable.cancel()))
-                                .collect();
-                    }
-                })
                 .to(TestX.collect());
     }
 

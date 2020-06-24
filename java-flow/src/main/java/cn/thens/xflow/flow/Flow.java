@@ -1,7 +1,5 @@
 package cn.thens.xflow.flow;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -25,6 +23,10 @@ public abstract class Flow<T> {
 
     protected abstract Cancellable collect(Scheduler scheduler, Collector<T> collector);
 
+    public Cancellable collect() {
+        return collect(Schedulers.core(), CollectorHelper.get());
+    }
+
     Cancellable collect(Emitter<?> emitter, Collector<T> collector) {
         Cancellable cancellable = collect(emitter.scheduler(), collector);
         emitter.addCancellable(cancellable);
@@ -33,11 +35,6 @@ public abstract class Flow<T> {
 
     Cancellable collect(Emitter<T> emitter) {
         return collect(emitter, CollectorHelper.from(emitter));
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public Cancellable collect() {
-        return collect(Schedulers.core(), CollectorHelper.get());
     }
 
     public Flow<T> flowOn(Scheduler upScheduler) {
@@ -72,6 +69,10 @@ public abstract class Flow<T> {
         return transform(FlowFilter.filter(predicate));
     }
 
+    public Flow<T> ignoreElements() {
+        return transform(FlowFilter.ignoreElements());
+    }
+
     public <K> Flow<T> distinct(Func1<T, K> keySelector) {
         return transform(FlowFilter.distinct(keySelector));
     }
@@ -93,31 +94,43 @@ public abstract class Flow<T> {
     }
 
     public Flow<T> take(int count) {
-        return transform(new FlowTake<>(count));
+        return transform(FlowTakeUntil.take(count));
+    }
+
+    public Flow<T> takeLast(int count) {
+        return transform(new FlowTakeLast<>(count));
     }
 
     public Flow<T> takeWhile(Predicate<T> predicate) {
         return transform(FlowTakeWhile.takeWhile(predicate));
     }
 
+    public Flow<T> takeUntil(Predicate<T> predicate) {
+        return transform(FlowTakeUntil.takeUntil(predicate));
+    }
+
     public Flow<T> takeUntil(T data) {
-        return transform(FlowTakeWhile.takeUntil(data));
+        return transform(FlowTakeUntil.takeUntil(data));
     }
 
     public Flow<T> first() {
-        return transform(FlowTakeFirst.first());
-    }
-
-    public Flow<T> firstOrDefault(final T defaultValue) {
-        return transform(FlowTakeFirst.firstOrDefault(defaultValue));
+        return transform(FlowElementAt.first());
     }
 
     public Flow<T> first(Predicate<T> predicate) {
-        return transform(FlowTakeFirst.first(predicate));
+        return transform(FlowElementAt.first(predicate));
     }
 
-    public Flow<T> firstOrDefault(Predicate<T> predicate, T defaultValue) {
-        return transform(FlowTakeFirst.firstOrDefault(predicate, defaultValue));
+    public Flow<T> elementAt(int index) {
+        return transform(FlowElementAt.elementAt(index));
+    }
+
+    public Flow<T> last() {
+        return transform(FlowFilter.last());
+    }
+
+    public Flow<T> last(Predicate<T> predicate) {
+        return transform(FlowFilter.last(predicate));
     }
 
     public <R> Flow<R> reduce(R initialValue, Func2<R, ? super T, R> accumulator) {
@@ -152,7 +165,6 @@ public abstract class Flow<T> {
         return FlowDelayStart.delayStart(this, delayFlow);
     }
 
-    @ApiStatus.Experimental
     public Flow<T> autoCancel(Flow<?> cancelFlow) {
         return new FlowAutoCancel<>(this, cancelFlow);
     }

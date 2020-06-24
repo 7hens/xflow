@@ -1,7 +1,9 @@
 package cn.thens.xflow.flow;
 
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import cn.thens.xflow.func.Func1;
 import cn.thens.xflow.func.Funcs;
@@ -19,18 +21,16 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
             @Override
             public void onCollect(Reply<T> reply) {
                 if (reply.isTerminated()) {
-                    Throwable error = reply.error();
-                    emitter.error(error);
-                    onTerminated(error);
-                } else {
-                    try {
-                        T data = reply.data();
-                        if (test(data)) {
-                            emitter.data(data);
-                        }
-                    } catch (Throwable e) {
-                        emitter.error(e);
+                    onTerminated(emitter, reply.error());
+                    return;
+                }
+                try {
+                    T data = reply.data();
+                    if (test(data)) {
+                        emitter.data(data);
                     }
+                } catch (Throwable e) {
+                    emitter.error(e);
                 }
             }
         };
@@ -38,17 +38,15 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
 
     protected abstract boolean test(T data) throws Throwable;
 
-    protected abstract void onTerminated(Throwable e);
+    void onTerminated(Emitter<T> emitter, Throwable error) {
+        emitter.error(error);
+    }
 
     static <T> FlowFilter<T> filter(Predicate<T> predicate) {
         return new FlowFilter<T>() {
             @Override
             protected boolean test(T data) throws Throwable {
                 return predicate.test(data);
-            }
-
-            @Override
-            protected void onTerminated(Throwable e) {
             }
         };
     }
@@ -68,7 +66,8 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
             }
 
             @Override
-            protected void onTerminated(Throwable e) {
+            protected void onTerminated(Emitter<T> emitter, Throwable error) {
+                super.onTerminated(emitter, error);
                 collectedKeys.clear();
             }
         };
@@ -93,7 +92,8 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
             }
 
             @Override
-            protected void onTerminated(Throwable e) {
+            protected void onTerminated(Emitter<T> emitter, Throwable error) {
+                super.onTerminated(emitter, error);
                 lastKey = null;
             }
         };
@@ -105,5 +105,43 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
 
     static <T> FlowFilter<T> skip(int count) {
         return FlowFilter.filter(PredicateHelper.skip(count));
+    }
+
+    static <T> FlowFilter<T> last(Predicate<T> predicate) {
+        return new FlowFilter<T>() {
+            AtomicBoolean hasValue = new AtomicBoolean(false);
+            T lastValue;
+
+            @Override
+            protected boolean test(T data) throws Throwable {
+                if (predicate.test(data)) {
+                    lastValue = data;
+                    hasValue.set(true);
+                }
+                return false;
+            }
+
+            @Override
+            void onTerminated(Emitter<T> emitter, Throwable error) {
+                if (error == null) {
+                    if (hasValue.get()) {
+                        emitter.data(lastValue);
+                        emitter.complete();
+                    } else {
+                        emitter.error(new NoSuchElementException());
+                    }
+                } else {
+                    super.onTerminated(emitter, error);
+                }
+            }
+        };
+    }
+
+    static <T> FlowFilter<T> last() {
+        return last(PredicateHelper.always());
+    }
+
+    static <T> FlowFilter<T> ignoreElements() {
+        return FlowFilter.filter(PredicateHelper.never());
     }
 }

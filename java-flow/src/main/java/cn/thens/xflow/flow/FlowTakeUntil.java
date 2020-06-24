@@ -2,11 +2,12 @@ package cn.thens.xflow.flow;
 
 
 import cn.thens.xflow.func.Predicate;
+import cn.thens.xflow.func.PredicateHelper;
 
 /**
  * @author 7hens
  */
-abstract class FlowTakeWhile<T> implements Flow.Operator<T, T> {
+abstract class FlowTakeUntil<T> implements Flow.Operator<T, T> {
     @Override
     public Collector<T> apply(Emitter<T> emitter) {
         return new Collector<T>() {
@@ -17,9 +18,8 @@ abstract class FlowTakeWhile<T> implements Flow.Operator<T, T> {
                     return;
                 }
                 try {
+                    emitter.emit(reply);
                     if (test(reply.data())) {
-                        emitter.emit(reply);
-                    } else {
                         emitter.complete();
                     }
                 } catch (Throwable e) {
@@ -31,12 +31,31 @@ abstract class FlowTakeWhile<T> implements Flow.Operator<T, T> {
 
     protected abstract boolean test(T data) throws Throwable;
 
-    static <T> FlowTakeWhile<T> takeWhile(Predicate<T> predicate) {
-        return new FlowTakeWhile<T>() {
+    static <T> FlowTakeUntil<T> takeUntil(Predicate<T> predicate) {
+        return new FlowTakeUntil<T>() {
             @Override
             protected boolean test(T data) throws Throwable {
                 return predicate.test(data);
             }
         };
+    }
+
+    static <T> FlowTakeUntil<T> takeUntil(T t) {
+        return new FlowTakeUntil<T>() {
+            @Override
+            protected boolean test(T data) throws Throwable {
+                return data == t;
+            }
+        };
+    }
+
+    static <T> Flow.Operator<T, T> take(int count) {
+        if (count <= 0) {
+            return emitter -> {
+                emitter.complete();
+                return CollectorHelper.from(emitter);
+            };
+        }
+        return takeUntil(PredicateHelper.skip(count - 1));
     }
 }
