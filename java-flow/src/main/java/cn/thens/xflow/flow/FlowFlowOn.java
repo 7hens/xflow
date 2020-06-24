@@ -17,7 +17,7 @@ class FlowFlowOn<T> extends Flow<T> {
     }
 
     @Override
-    protected Cancellable collect(Collector<T> collector, Scheduler scheduler) {
-        return upFlow.collect(new CollectorEmitter<T>(collector, scheduler), upScheduler);
+    protected Cancellable collect(Scheduler scheduler, Collector<T> collector) {
+        return upFlow.collect(upScheduler, new CollectorEmitter<T>(collector, scheduler));
     }
 }

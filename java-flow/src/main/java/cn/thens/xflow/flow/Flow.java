@@ -23,10 +23,10 @@ public abstract class Flow<T> {
         Collector<Up> apply(Emitter<Dn> emitter);
     }
 
-    protected abstract Cancellable collect(Collector<T> collector, Scheduler scheduler);
+    protected abstract Cancellable collect(Scheduler scheduler, Collector<T> collector);
 
     Cancellable collect(Emitter<?> emitter, Collector<T> collector) {
-        Cancellable cancellable = collect(collector, emitter.scheduler());
+        Cancellable cancellable = collect(emitter.scheduler(), collector);
         emitter.addCancellable(cancellable);
         return cancellable;
     }
@@ -37,7 +37,7 @@ public abstract class Flow<T> {
 
     @SuppressWarnings("UnusedReturnValue")
     public Cancellable collect() {
-        return collect(CollectorHelper.get(), Schedulers.core());
+        return collect(Schedulers.core(), CollectorHelper.get());
     }
 
     public Flow<T> flowOn(Scheduler upScheduler) {
