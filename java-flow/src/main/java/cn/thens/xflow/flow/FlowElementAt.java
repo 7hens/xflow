@@ -40,7 +40,7 @@ abstract class FlowElementAt<T> implements Flow.Operator<T, T> {
     }
 
     static <T> FlowElementAt<T> first() {
-        return first(PredicateHelper.always());
+        return first(PredicateHelper.alwaysTrue());
     }
 
     static <T> FlowElementAt<T> elementAt(int index) {

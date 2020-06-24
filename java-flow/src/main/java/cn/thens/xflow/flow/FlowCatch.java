@@ -67,7 +67,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
     }
 
     static <T> Flow<T> retry(Flow<T> upFlow) {
-        return retry(upFlow, PredicateHelper.always());
+        return retry(upFlow, PredicateHelper.alwaysTrue());
     }
 
     static <T> Flow<T> retry(Flow<T> upFlow, int count) {

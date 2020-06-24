@@ -15,11 +15,11 @@ public class UnconfinedScheduler extends Scheduler {
             runnable.run();
         } else {
             try {
-                Thread.sleep(unit.toMillis(delay), (int)(unit.toNanos(delay) % 1000000));
+                Thread.sleep(unit.toMillis(delay), (int) (unit.toNanos(delay) % 1000000));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
         }
-        return new CompositeCancellable();
+        return CompositeCancellable.cancelled();
     }
 }

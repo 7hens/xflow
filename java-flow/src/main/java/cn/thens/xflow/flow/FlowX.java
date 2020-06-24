@@ -15,7 +15,7 @@ public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
         return new FlowX<Up, T>() {
             @Override
             public Collector<Up> apply(Emitter<T> emitter) {
-                return self.apply(new CollectorEmitter(operator.apply(emitter), emitter.scheduler()));
+                return self.apply(new CollectorEmitter(emitter.scheduler(), operator.apply(emitter)));
             }
         };
     }

@@ -138,10 +138,10 @@ abstract class FlowFilter<T> implements Flow.Operator<T, T> {
     }
 
     static <T> FlowFilter<T> last() {
-        return last(PredicateHelper.always());
+        return last(PredicateHelper.alwaysTrue());
     }
 
     static <T> FlowFilter<T> ignoreElements() {
-        return FlowFilter.filter(PredicateHelper.never());
+        return FlowFilter.filter(PredicateHelper.alwaysFalse());
     }
 }

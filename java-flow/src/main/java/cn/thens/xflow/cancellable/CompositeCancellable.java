@@ -41,4 +41,14 @@ public class CompositeCancellable implements Cancellable {
             }
         }
     }
+
+    private static CompositeCancellable CANCELLED = new CompositeCancellable();
+
+    static {
+        CANCELLED.cancel();
+    }
+
+    public static CompositeCancellable cancelled() {
+        return CANCELLED;
+    }
 }

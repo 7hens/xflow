@@ -19,7 +19,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
     private final Collector<T> collector;
     private final CancellableScheduler scheduler;
 
-    CollectorEmitter(Collector<T> collector, Scheduler scheduler) {
+    CollectorEmitter(Scheduler scheduler, Collector<T> collector) {
         this.scheduler = scheduler.cancellable();
         this.collector = collector;
     }

@@ -1,8 +1,8 @@
 package cn.thens.xflow.flow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.cancellable.Cancellable;
@@ -13,15 +13,15 @@ import cn.thens.xflow.scheduler.Schedulers;
  * @author 7hens
  */
 public class FlowEmitter<T> implements Emitter<T> {
-    private List<Emitter<T>> emitters = new ArrayList<>();
-    private CollectorEmitter<T> collectorEmitter = new CollectorEmitter<>(new Collector<T>() {
+    private List<Emitter<T>> emitters = new CopyOnWriteArrayList<>();
+    private CollectorEmitter<T> collectorEmitter = new CollectorEmitter<>(Schedulers.core(), new Collector<T>() {
         @Override
         public void onCollect(Reply<T> reply) {
             for (Emitter<T> emitter : emitters) {
                 emitter.emit(reply);
             }
         }
-    }, Schedulers.core());
+    });
 
     @Override
     public void emit(Reply<T> reply) {

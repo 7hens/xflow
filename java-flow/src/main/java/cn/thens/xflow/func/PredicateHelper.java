@@ -57,14 +57,14 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    private static final PredicateHelper ALWAYS = new PredicateHelper() {
+    private static final PredicateHelper ALWAYS_TRUE = new PredicateHelper() {
         @Override
         public boolean test(Object o) {
             return true;
         }
     };
 
-    private static final PredicateHelper NEVER = new PredicateHelper() {
+    private static final PredicateHelper ALWAYS_FALSE = new PredicateHelper() {
         @Override
         public boolean test(Object o) {
             return false;
@@ -72,13 +72,13 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
     };
 
     @SuppressWarnings("unchecked")
-    public static <T> PredicateHelper<T> always() {
-        return ALWAYS;
+    public static <T> PredicateHelper<T> alwaysTrue() {
+        return ALWAYS_TRUE;
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> PredicateHelper<T> never() {
-        return NEVER;
+    public static <T> PredicateHelper<T> alwaysFalse() {
+        return ALWAYS_FALSE;
     }
 
     public static <T> PredicateHelper<T> take(int count) {
