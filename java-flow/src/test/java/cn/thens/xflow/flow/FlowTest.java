@@ -121,4 +121,24 @@ public class FlowTest {
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }
+
+    @Test
+    public void toList() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .take(3)
+                .toList()
+                .onCollect(TestX.collector("A"))
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void buffer() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .buffer(Flow.timer(2, TimeUnit.SECONDS))
+                .map(it -> it.toList().onCollect(TestX.collector("A")))
+                .take(5)
+                .transform(FlowX.flatMerge())
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
 }

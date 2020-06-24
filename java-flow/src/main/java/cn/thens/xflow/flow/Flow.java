@@ -1,5 +1,6 @@
 package cn.thens.xflow.flow;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -63,6 +64,10 @@ public abstract class Flow<T> {
 
     public <R> Flow<R> flatMap(Func1<T, Flow<R>> mapper) {
         return map(mapper).transform(FlowX.flatMerge());
+    }
+
+    public Flow<List<T>> toList() {
+        return transform(new FlowToList<>());
     }
 
     public Flow<T> filter(Predicate<T> predicate) {
@@ -187,6 +192,14 @@ public abstract class Flow<T> {
 
     public Flow<T> retry(Predicate<Throwable> predicate) {
         return FlowCatch.retry(this, predicate);
+    }
+
+    public Flow<Flow<T>> buffer(Func0<Flow<?>> windowFlowFactory) {
+        return FlowBuffer.buffer(this, windowFlowFactory);
+    }
+
+    public Flow<Flow<T>> buffer(Flow<?> windowFlow) {
+        return FlowBuffer.buffer(this, windowFlow);
     }
 
     public static <T> Flow<T> create(Action1<Emitter<T>> onStart) {
