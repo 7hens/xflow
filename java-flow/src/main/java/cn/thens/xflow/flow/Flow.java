@@ -7,6 +7,7 @@ import java.util.concurrent.TimeoutException;
 
 import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.func.Action1;
+import cn.thens.xflow.func.Func0;
 import cn.thens.xflow.func.Func1;
 import cn.thens.xflow.func.Func2;
 import cn.thens.xflow.func.Predicate;
@@ -129,6 +130,22 @@ public abstract class Flow<T> {
 
     public Flow<T> timeout(long timeout, TimeUnit unit) {
         return timeout(timeout, unit, Flow.error(new TimeoutException()));
+    }
+
+    public Flow<T> delay(Func1<? super Reply<T>, ? extends Flow<?>> delayFunc) {
+        return FlowDelay.delay(this, delayFunc);
+    }
+
+    public Flow<T> delay(Flow<?> delayFlow) {
+        return FlowDelay.delay(this, delayFlow);
+    }
+
+    public Flow<T> delayStart(Func0<? extends Flow<?>> delayFunc) {
+        return FlowDelayStart.delayStart(this, delayFunc);
+    }
+
+    public Flow<T> delayStart(Flow<?> delayFlow) {
+        return FlowDelayStart.delayStart(this, delayFlow);
     }
 
     @ApiStatus.Experimental

@@ -110,4 +110,24 @@ public class FlowTest {
                 .onCollect(TestX.collector("D"))
                 .to(TestX.collect());
     }
+
+    @Test
+    public void delay() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("A"))
+                .take(3)
+                .delay(Flow.timer(5, TimeUnit.SECONDS))
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void delayStart() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("A"))
+                .take(3)
+                .delayStart(Flow.timer(5, TimeUnit.SECONDS))
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
 }

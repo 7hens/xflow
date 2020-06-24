@@ -1,42 +1,52 @@
 package cn.thens.xflow.flow;
 
 
-import cn.thens.xflow.func.Func0;
 import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Funcs;
 
 /**
  * @author 7hens
  */
-class FlowDelay<T, R> extends AbstractFlow<R> {
+class FlowDelay<T> extends AbstractFlow<T> {
     private final Flow<T> upFlow;
-    private final Func0<? extends Flow> startDelay;
-    private final Func1<? super T, ? extends Flow<R>> replyDelay;
+    private final Func1<? super Reply<T>, ? extends Flow> delayFunc;
 
-    private FlowDelay(Flow<T> upFlow, Func0<? extends Flow<?>> startDelay, Func1<? super T, ? extends Flow<R>> replyDelay) {
+    private FlowDelay(Flow<T> upFlow, Func1<? super Reply<T>, ? extends Flow<?>> delayFunc) {
         this.upFlow = upFlow;
-        this.startDelay = startDelay;
-        this.replyDelay = replyDelay;
+        this.delayFunc = delayFunc;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void onStart(CollectorEmitter<R> emitter) {
+    protected void onStart(CollectorEmitter<T> emitter) {
         try {
-            startDelay.invoke().collect(emitter, new CollectorHelper() {
+            upFlow.collect(emitter, new Collector<T>() {
                 @Override
-                protected void onTerminate(Throwable error) throws Throwable {
-                    super.onTerminate(error);
-                    upFlow.collect(emitter, new CollectorHelper<T>() {
-                        @Override
-                        protected void onEach(T data) throws Throwable {
-                            super.onEach(data);
-                            replyDelay.invoke(data).collect(emitter, CollectorHelper.from(emitter));
-                        }
-                    });
+                public void onCollect(Reply<T> reply) {
+                    try {
+                        delayFunc.invoke(reply).collect(emitter, new CollectorHelper() {
+                            @Override
+                            protected void onTerminate(Throwable error) throws Throwable {
+                                super.onTerminate(error);
+                                emitter.emit(reply);
+                            }
+                        });
+                    } catch (Throwable e) {
+                        emitter.error(e);
+                    }
+
                 }
             });
         } catch (Throwable e) {
             emitter.error(e);
         }
+    }
+
+    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Func1<? super Reply<T>, ? extends Flow<?>> delayFunc) {
+        return new FlowDelay<>(upFlow, delayFunc);
+    }
+
+    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Flow<?> delayFlow) {
+        return new FlowDelay<>(upFlow, Funcs.result(delayFlow));
     }
 }
