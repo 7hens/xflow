@@ -25,7 +25,7 @@ public abstract class Flow<T> {
 
     @SuppressWarnings("UnusedReturnValue")
     public Cancellable collect() {
-        return collect(new CollectorHelper<T>(), Schedulers.core());
+        return collect(CollectorHelper.get(), Schedulers.core());
     }
 
     public Flow<T> flowOn(Scheduler upScheduler) {
@@ -45,7 +45,7 @@ public abstract class Flow<T> {
     }
 
     public Flow<T> onCollect(Collector<T> collector) {
-        return transform(new FlowOnCollect<>(collector));
+        return new FlowOnCollect<>(this, collector);
     }
 
     public <R> Flow<R> map(Func1<T, R> mapper) {
@@ -85,7 +85,11 @@ public abstract class Flow<T> {
     }
 
     public Flow<T> takeWhile(Predicate<T> predicate) {
-        return transform(new FlowTakeWhile<>(predicate));
+        return transform(FlowTakeWhile.takeWhile(predicate));
+    }
+
+    public Flow<T> takeUntil(T data) {
+        return transform(FlowTakeWhile.takeUntil(data));
     }
 
     public Flow<T> first() {

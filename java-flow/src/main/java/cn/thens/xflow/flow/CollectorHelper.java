@@ -10,7 +10,7 @@ import cn.thens.xflow.func.Action1;
 /**
  * @author 7hens
  */
-public class CollectorHelper<T> implements Collector<T> {
+public abstract class CollectorHelper<T> implements Collector<T> {
     @Override
     public void onCollect(Reply<T> reply) {
         try {
@@ -132,6 +132,14 @@ public class CollectorHelper<T> implements Collector<T> {
                 collector.onCollect(reply);
             }
         };
+    }
+
+    private static CollectorHelper INSTANCE = new CollectorHelper() {
+    };
+
+    @SuppressWarnings("unchecked")
+    public static <T> CollectorHelper<T> get() {
+        return INSTANCE;
     }
 
     public static class Wrapper<T> extends CollectorHelper<T> {

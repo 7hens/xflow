@@ -102,10 +102,11 @@ public class TestX {
             public Void invoke(Flow<T> flow) throws Throwable {
                 try {
                     CountDownLatch latch = new CountDownLatch(1);
-                    flow.onCollect(new CollectorHelper<T>()
+                    flow.onCollect(CollectorHelper.<T>get()
                             .onTerminate(it -> latch.countDown()))
                             .collect();
                     latch.await();
+                    delay(100);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }

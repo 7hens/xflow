@@ -56,7 +56,7 @@ public class FlowXTest {
     public void transform() {
         Flow.just(1, 2, 3)
                 .onCollect(TestX.collector("A"))
-                .transform(FlowX.from(it -> it.map(i -> i + 10)))
+                .transform(FlowX.pipe(it -> it.map(i -> i + 10)))
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }

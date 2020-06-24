@@ -29,15 +29,14 @@ public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
         };
     }
 
-    public static <Up, Dn> FlowX<Up, Dn> from(Func1<Flow<Up>, Flow<Dn>> action) {
+    public static <Up, Dn> FlowX<Up, Dn> pipe(Func1<Flow<Up>, Flow<Dn>> action) {
         return new FlowX<Up, Dn>() {
             @Override
             public Collector<Up> apply(Emitter<Dn> emitter) {
                 AtomicReference<Emitter<Up>> upEmitterRef = new AtomicReference<>();
                 Flow.create(upEmitterRef::set)
                         .to(action)
-                        .onCollect(CollectorHelper.from(emitter))
-                        .collect();
+                        .collect(CollectorHelper.from(emitter), emitter.scheduler());
                 return reply -> upEmitterRef.get().emit(reply);
             }
         };

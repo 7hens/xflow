@@ -1,7 +1,11 @@
 package cn.thens.xflow.func;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.flow.CollectorHelper;
 import cn.thens.xflow.flow.Flow;
@@ -106,7 +110,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public static <T> PredicateHelper<T> of(AtomicBoolean value) {
+    public static <T> PredicateHelper<T> of(@NotNull AtomicBoolean value) {
         return new PredicateHelper<T>() {
             @Override
             public boolean test(T t) throws Throwable {
@@ -115,8 +119,26 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
+    public static <T> PredicateHelper<T> eq(@NotNull AtomicReference<T> dataRef) {
+        return new PredicateHelper<T>() {
+            @Override
+            public boolean test(T t) throws Throwable {
+                return PredicateHelper.equals(t, dataRef.get());
+            }
+        };
+    }
+
+    public static <T> PredicateHelper<T> eq(@Nullable T data) {
+        return eq(new AtomicReference<>(data));
+    }
+
+    private static boolean equals(Object a, Object b) {
+        //noinspection EqualsReplaceableByObjectsCall
+        return a != null ? a.equals(b) : b == null;
+    }
+
     @SuppressWarnings("unchecked")
-    public static <T> PredicateHelper<T> window(Flow<?> flow) {
+    public static <T> PredicateHelper<T> window(@NotNull Flow<?> flow) {
         final AtomicBoolean hasNext = new AtomicBoolean(true);
         flow.onCollect(new CollectorHelper() {
             @Override

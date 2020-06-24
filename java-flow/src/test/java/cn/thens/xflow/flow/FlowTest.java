@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 import cn.thens.xflow.TestX;
+import cn.thens.xflow.cancellable.Cancellable;
 
 /**
  * @author 7hens
@@ -63,6 +64,32 @@ public class FlowTest {
                 })
 //                .onCollect(x.collector("A"))
                 .retry(3)
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void cancel() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("A"))
+                .onCollect(new CollectorHelper<Long>() {
+                    @Override
+                    protected void onStart(Cancellable cancellable) throws Throwable {
+                        super.onStart(cancellable);
+                        Flow.timer(3, TimeUnit.SECONDS)
+                                .onCollect(CollectorHelper.<Long>get()
+                                        .onTerminate(it -> cancellable.cancel()))
+                                .collect();
+                    }
+                })
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void autoCancel() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("A"))
+                .autoCancel(Flow.timer(2, TimeUnit.SECONDS))
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }

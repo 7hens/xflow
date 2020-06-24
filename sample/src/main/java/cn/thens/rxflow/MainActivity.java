@@ -4,10 +4,12 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Lifecycle;
 
 import java.util.concurrent.TimeUnit;
 
 import cn.thens.xflow.AndroidFlow;
+import cn.thens.xflow.flow.Collector;
 import cn.thens.xflow.flow.CollectorHelper;
 import cn.thens.xflow.flow.Flow;
 
@@ -17,32 +19,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Flow.interval(1, TimeUnit.SECONDS)
-//                .onCollect(new CollectorHelper<Long>() {
-//                    @Override
-//                    protected void onEach(Long data) throws Throwable {
-//                        Log.d("@Flow", "test lifecycle: " + data);
-//                    }
-//
-//                    @Override
-//                    protected void onTerminate(Throwable error) throws Throwable {
-//                        super.onTerminate(error);
-//                        Log.d("@Flow", "test lifecycle: " + error.getClass().getName());
-//                    }
-//                })
-                .autoCancel(AndroidFlow.lifecycle(this))
-                .onCollect(new CollectorHelper<Long>() {
-                    @Override
-                    protected void onEach(Long data) throws Throwable {
-                        Log.d("@Flow", "test lifecycle: " + data);
-                    }
 
-                    @Override
-                    protected void onTerminate(Throwable error) throws Throwable {
-                        super.onTerminate(error);
-                        Log.d("@Flow", "test lifecycle: " + error.getClass().getName());
-                    }
-                })
+        Log.d("@Flow", "start");
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(newCollector("A"))
+                .autoCancel(AndroidFlow.lifecycle(this).takeUntil(Lifecycle.Event.ON_PAUSE))
+                .onCollect(newCollector("B"))
                 .collect();
+    }
+
+    private <T> Collector<T> newCollector(String tag) {
+        return new CollectorHelper<T>() {
+            @Override
+            protected void onEach(T data) throws Throwable {
+                Log.d("@Flow." + tag, "" + data);
+            }
+
+            @Override
+            protected void onTerminate(Throwable error) throws Throwable {
+                super.onTerminate(error);
+                Log.d("@Flow." + tag, "" + error.getClass().getName());
+            }
+        };
     }
 }

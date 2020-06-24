@@ -1,40 +1,36 @@
 package cn.thens.xflow.flow;
 
-import java.util.concurrent.CancellationException;
-
-import cn.thens.xflow.cancellable.CompositeCancellable;
-
 /**
  * @author 7hens
  */
-class FlowOnCollect<T> implements Flow.Operator<T, T> {
+class FlowOnCollect<T> extends AbstractFlow<T> {
+    private final Flow<T> upFlow;
     private final Collector<T> collector;
 
-    FlowOnCollect(Collector<T> collector) {
+    FlowOnCollect(Flow<T> upFlow, Collector<T> collector) {
+        this.upFlow = upFlow;
         this.collector = collector;
     }
 
     @Override
-    public Collector<T> apply(Emitter<T> emitter) {
+    protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
         if (collector instanceof CollectorHelper) {
             try {
-                ((CollectorHelper<T>) collector).onStart(new CompositeCancellable() {
-                    @Override
-                    protected void onCancel() {
-                        super.onCancel();
-                        emitter.error(new CancellationException());
-                    }
-                });
+                ((CollectorHelper<T>) collector).onStart(emitter);
             } catch (Throwable e) {
                 emitter.error(e);
             }
         }
-        return new Collector<T>() {
+        emitter.addCancellable(upFlow.collect(new Collector<T>() {
             @Override
             public void onCollect(Reply<T> reply) {
-                collector.onCollect(reply);
+                try {
+                    collector.onCollect(reply);
+                } catch (Throwable e) {
+                    emitter.error(e);
+                }
                 emitter.emit(reply);
             }
-        };
+        }, emitter.scheduler()));
     }
 }
