@@ -27,7 +27,7 @@ public class AndroidFlow {
         });
     }
 
-    public static Flow<Lifecycle.Event> lifecycle(final View view) {
+    public static Flow<Lifecycle.Event> mockLifecycle(final View view) {
         return Flow.create(emitter -> {
             view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                 @Override

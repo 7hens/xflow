@@ -93,4 +93,21 @@ public class FlowTest {
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }
+
+    @Test
+    public void reduce() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .take(5)
+                .onCollect(TestX.collector("A"))
+                .reduce(Long::sum)
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+
+        Flow.interval(1, TimeUnit.SECONDS)
+                .take(5)
+                .onCollect(TestX.collector("C"))
+                .reduce(100L, Long::sum)
+                .onCollect(TestX.collector("D"))
+                .to(TestX.collect());
+    }
 }

@@ -107,6 +107,7 @@ public class TestX {
                             .collect();
                     latch.await();
                     delay(100);
+                    logger().log("==========================");
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }

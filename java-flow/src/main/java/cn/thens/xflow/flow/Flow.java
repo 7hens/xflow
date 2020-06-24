@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.func.Action1;
 import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Func2;
 import cn.thens.xflow.func.Predicate;
 import cn.thens.xflow.scheduler.Scheduler;
 import cn.thens.xflow.scheduler.Schedulers;
@@ -106,6 +107,14 @@ public abstract class Flow<T> {
 
     public Flow<T> firstOrDefault(Predicate<T> predicate, T defaultValue) {
         return transform(FlowTakeFirst.firstOrDefault(predicate, defaultValue));
+    }
+
+    public <R> Flow<R> reduce(R initialValue, Func2<R, ? super T, R> accumulator) {
+        return FlowReduce.reduce(this, initialValue, accumulator);
+    }
+
+    public Flow<T> reduce(Func2<T, ? super T, T> accumulator) {
+        return FlowReduce.reduce(this, accumulator);
     }
 
     public Flow<T> timeout(long timeout, TimeUnit unit, Flow<T> fallback) {
