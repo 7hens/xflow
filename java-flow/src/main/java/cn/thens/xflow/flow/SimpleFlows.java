@@ -2,6 +2,7 @@ package cn.thens.xflow.flow;
 
 
 import cn.thens.xflow.func.Action1;
+import cn.thens.xflow.func.Func0;
 
 /**
  * @author 7hens
@@ -38,6 +39,15 @@ final class SimpleFlows {
             @Override
             protected void onStart(CollectorEmitter<T> emitter) {
                 emitter.error(e);
+            }
+        };
+    }
+
+    static <T> Flow<T> defer(final Func0<Flow<T>> flowFactory) {
+        return new AbstractFlow<T>() {
+            @Override
+            protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+                flowFactory.invoke().collect(emitter);
             }
         };
     }

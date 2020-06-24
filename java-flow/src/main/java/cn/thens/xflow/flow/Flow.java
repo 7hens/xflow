@@ -17,7 +17,7 @@ import cn.thens.xflow.scheduler.Schedulers;
 /**
  * @author 7hens
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
 public abstract class Flow<T> {
     public interface Operator<Up, Dn> {
         Collector<Up> apply(Emitter<Dn> emitter);
@@ -29,6 +29,10 @@ public abstract class Flow<T> {
         Cancellable cancellable = collect(collector, emitter.scheduler());
         emitter.addCancellable(cancellable);
         return cancellable;
+    }
+
+    Cancellable collect(Emitter<T> emitter) {
+        return collect(emitter, CollectorHelper.from(emitter));
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -175,6 +179,10 @@ public abstract class Flow<T> {
 
     public static <T> Flow<T> create(Action1<Emitter<T>> onStart) {
         return SimpleFlows.create(onStart);
+    }
+
+    public static <T> Flow<T> defer(Func0<Flow<T>> flowFactory) {
+        return SimpleFlows.defer(flowFactory);
     }
 
     @SafeVarargs

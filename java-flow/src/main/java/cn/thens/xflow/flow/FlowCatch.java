@@ -43,7 +43,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
         return new FlowCatch<T>(upFlow) {
             @Override
             void handleError(Throwable error, Emitter<T> emitter) throws Throwable {
-                resumeFunc.invoke(error).collect(emitter, CollectorHelper.from(emitter));
+                resumeFunc.invoke(error).collect(emitter);
             }
         };
     }
@@ -58,7 +58,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
             void handleError(Throwable error, Emitter<T> emitter) throws Throwable {
                 boolean shouldRetry = predicate.test(error);
                 if (shouldRetry) {
-                    collect(emitter, CollectorHelper.from(emitter));
+                    collect(emitter);
                 } else {
                     emitter.error(error);
                 }
