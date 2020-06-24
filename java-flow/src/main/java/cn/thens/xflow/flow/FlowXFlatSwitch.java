@@ -23,7 +23,7 @@ class FlowXFlatSwitch<T> implements Flow.Operator<Flow<T>, T> {
                     cancellable.cancel();
                 }
                 Flow<T> flow = reply.data();
-                lastCancellable.set(flow.collect(innerCollector, emitter.scheduler()));
+                lastCancellable.set(flow.collect(emitter, innerCollector));
             }
 
             private final Collector<T> innerCollector = new Collector<T>() {

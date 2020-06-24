@@ -15,12 +15,12 @@ class FlowAutoCancel<T> extends AbstractFlow<T> {
     @SuppressWarnings("unchecked")
     @Override
     protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
-        emitter.addCancellable(upFlow.collect(CollectorHelper.from(emitter), emitter.scheduler()));
-        cancelFlow.collect(new CollectorHelper() {
+        upFlow.collect(emitter, CollectorHelper.from(emitter));
+        cancelFlow.collect(emitter, new CollectorHelper() {
             @Override
             protected void onTerminate(Throwable error) throws Throwable {
                 emitter.cancel();
             }
-        }, emitter.scheduler());
+        });
     }
 }

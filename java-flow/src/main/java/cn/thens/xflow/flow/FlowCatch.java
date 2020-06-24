@@ -18,7 +18,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
 
     @Override
     protected void onStart(CollectorEmitter<T> emitter) {
-        upFlow.collect(new Collector<T>() {
+        upFlow.collect(emitter, new Collector<T>() {
             @Override
             public void onCollect(Reply<T> reply) {
                 if (reply.isTerminated()) {
@@ -34,7 +34,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
                 }
                 emitter.emit(reply);
             }
-        }, emitter.scheduler());
+        });
     }
 
     abstract void handleError(Throwable error, Emitter<T> emitter) throws Throwable;
@@ -43,8 +43,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
         return new FlowCatch<T>(upFlow) {
             @Override
             void handleError(Throwable error, Emitter<T> emitter) throws Throwable {
-                resumeFunc.invoke(error)
-                        .collect(CollectorHelper.from(emitter), emitter.scheduler());
+                resumeFunc.invoke(error).collect(emitter, CollectorHelper.from(emitter));
             }
         };
     }
@@ -59,7 +58,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
             void handleError(Throwable error, Emitter<T> emitter) throws Throwable {
                 boolean shouldRetry = predicate.test(error);
                 if (shouldRetry) {
-                    collect(CollectorHelper.from(emitter), emitter.scheduler());
+                    collect(emitter, CollectorHelper.from(emitter));
                 } else {
                     emitter.error(error);
                 }

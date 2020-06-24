@@ -50,12 +50,12 @@ public class FlowTimeout<T> implements Flow.Operator<T, T> {
         @Override
         public void run() {
             if (isTransferred.compareAndSet(false, true)) {
-                fallback.collect(new Collector<T>() {
+                fallback.collect(emitter, new Collector<T>() {
                     @Override
                     public void onCollect(Reply<T> reply) {
                         emitter.emit(reply);
                     }
-                }, emitter.scheduler());
+                });
             }
         }
     }

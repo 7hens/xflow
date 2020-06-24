@@ -14,7 +14,7 @@ class FlowXFlatMerge<T> implements Flow.Operator<Flow<T>, T> {
                 helper.onOuterCollect(reply);
                 if (reply.isTerminated()) return;
                 Flow<T> flow = reply.data();
-                flow.collect(innerCollector, emitter.scheduler());
+                flow.collect(emitter, innerCollector);
             }
 
             private final Collector<T> innerCollector = new Collector<T>() {

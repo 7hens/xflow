@@ -62,7 +62,7 @@ public class FlowTest {
                     if (it > 1) throw new Exception();
                     return it;
                 })
-//                .onCollect(x.collector("A"))
+                .onCollect(TestX.collector("A"))
                 .retry(3)
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());

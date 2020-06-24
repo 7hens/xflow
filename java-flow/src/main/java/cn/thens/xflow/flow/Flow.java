@@ -24,6 +24,12 @@ public abstract class Flow<T> {
 
     protected abstract Cancellable collect(Collector<T> collector, Scheduler scheduler);
 
+    Cancellable collect(Emitter<?> emitter, Collector<T> collector) {
+        Cancellable cancellable = collect(collector, emitter.scheduler());
+        emitter.addCancellable(cancellable);
+        return cancellable;
+    }
+
     @SuppressWarnings("UnusedReturnValue")
     public Cancellable collect() {
         return collect(CollectorHelper.get(), Schedulers.core());

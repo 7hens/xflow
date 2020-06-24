@@ -21,7 +21,7 @@ class FlowOnCollect<T> extends AbstractFlow<T> {
                 emitter.error(e);
             }
         }
-        emitter.addCancellable(upFlow.collect(new Collector<T>() {
+        upFlow.collect(emitter, new Collector<T>() {
             @Override
             public void onCollect(Reply<T> reply) {
                 try {
@@ -31,6 +31,6 @@ class FlowOnCollect<T> extends AbstractFlow<T> {
                 }
                 emitter.emit(reply);
             }
-        }, emitter.scheduler()));
+        });
     }
 }

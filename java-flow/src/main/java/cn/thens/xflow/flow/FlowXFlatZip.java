@@ -33,7 +33,7 @@ class FlowXFlatZip<T> implements Flow.Operator<Flow<T>, List<T>> {
                 Flow<T> flow = reply.data();
                 Queue<T> dataQueue = new LinkedList<>();
                 cachedDataQueue.add(dataQueue);
-                flow.collect(newInnerCollector(dataQueue), emitter.scheduler());
+                flow.collect(emitter, newInnerCollector(dataQueue));
             }
 
             private Collector<T> newInnerCollector(Queue<T> dataQueue) {

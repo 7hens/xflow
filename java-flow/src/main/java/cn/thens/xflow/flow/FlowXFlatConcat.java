@@ -21,7 +21,7 @@ public class FlowXFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
                 if (reply.isTerminated()) return;
                 Flow<T> flow = reply.data();
                 if (isCollecting.compareAndSet(false, true)) {
-                    flow.collect(innerCollector, emitter.scheduler());
+                    flow.collect(emitter,innerCollector);
                     return;
                 }
                 flowQueue.add(flow);
@@ -38,7 +38,7 @@ public class FlowXFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
                     isCollecting.set(true);
                     if (reply.isTerminated()) {
                         if (!flowQueue.isEmpty()) {
-                            flowQueue.poll().collect(this, emitter.scheduler());
+                            flowQueue.poll().collect(emitter, this);
                         } else {
                             isCollecting.set(false);
                         }

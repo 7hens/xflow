@@ -36,7 +36,7 @@ public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
                 AtomicReference<Emitter<Up>> upEmitterRef = new AtomicReference<>();
                 Flow.create(upEmitterRef::set)
                         .to(action)
-                        .collect(CollectorHelper.from(emitter), emitter.scheduler());
+                        .collect(emitter, CollectorHelper.from(emitter));
                 return reply -> upEmitterRef.get().emit(reply);
             }
         };

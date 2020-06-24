@@ -19,7 +19,7 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
 
     @Override
     protected void onStart(CollectorEmitter<R> emitter) {
-        emitter.addCancellable(upFlow.collect(new Collector<T>() {
+        upFlow.collect(emitter, new Collector<T>() {
             private AtomicBoolean hasValue = new AtomicBoolean(false);
 
             @Override
@@ -43,7 +43,7 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
                     emitter.error(e);
                 }
             }
-        }, emitter.scheduler()));
+        });
     }
 
     abstract void accumulate(T data) throws Throwable;
