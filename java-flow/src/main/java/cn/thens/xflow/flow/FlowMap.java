@@ -19,12 +19,12 @@ class FlowMap<T, R> implements Flow.Operator<T, R> {
             public void onCollect(Reply<T> reply) {
                 if (reply.isTerminated()) {
                     emitter.error(reply.error());
-                } else {
-                    try {
-                        emitter.data(mapper.invoke(reply.data()));
-                    } catch (Throwable e) {
-                        emitter.error(e);
-                    }
+                    return;
+                }
+                try {
+                    emitter.data(mapper.invoke(reply.data()));
+                } catch (Throwable e) {
+                    emitter.error(e);
                 }
             }
         };

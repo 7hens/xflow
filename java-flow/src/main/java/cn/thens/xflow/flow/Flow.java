@@ -190,28 +190,28 @@ public abstract class Flow<T> {
     }
 
     public static <T> Flow<T> create(Action1<Emitter<T>> onStart) {
-        return SimpleFlows.create(onStart);
+        return FlowCreate.create(onStart);
     }
 
     public static <T> Flow<T> defer(Func0<Flow<T>> flowFactory) {
-        return SimpleFlows.defer(flowFactory);
+        return FlowCreate.defer(flowFactory);
     }
 
     @SafeVarargs
     public static <T> Flow<T> just(T... items) {
-        return new FlowJust<>(items);
+        return FlowCreate.fromArray(items);
     }
 
     public static <T> Flow<T> from(Iterable<T> iterable) {
-        return new FlowFrom<>(iterable);
+        return FlowCreate.fromIterable(iterable);
     }
 
     public static <T> Flow<T> from(T[] array) {
-        return new FlowJust<>(array);
+        return FlowCreate.fromArray(array);
     }
 
     public static Flow<Integer> range(int start, int end, int step) {
-        return new FlowRange(start, end, step);
+        return FlowCreate.range(start, end, step);
     }
 
     public static Flow<Integer> range(int start, int end) {
@@ -219,23 +219,23 @@ public abstract class Flow<T> {
     }
 
     public static <T> Flow<T> empty() {
-        return SimpleFlows.empty();
+        return FlowCreate.empty();
     }
 
     public static <T> Flow<T> error(Throwable e) {
-        return SimpleFlows.error(e);
+        return FlowCreate.error(e);
     }
 
     public static <T> Flow<T> never() {
-        return SimpleFlows.never();
+        return FlowCreate.never();
     }
 
     public static Flow<Long> timer(long delay, TimeUnit unit) {
-        return new FlowTimer(delay, unit);
+        return FlowCreate.timer(delay, unit);
     }
 
     public static Flow<Long> interval(long initialDelay, long period, TimeUnit unit) {
-        return new FlowInterval(initialDelay, period, unit);
+        return FlowCreate.interval(initialDelay, period, unit);
     }
 
     public static Flow<Long> interval(long period, TimeUnit unit) {
