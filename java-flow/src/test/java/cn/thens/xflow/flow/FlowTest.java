@@ -138,4 +138,13 @@ public class FlowTest {
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }
+
+    @Test
+    public void bufferFilter() {
+        Flow.interval(1, TimeUnit.SECONDS)
+                .buffer(3)
+                .take(5)
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
 }
