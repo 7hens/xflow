@@ -1,17 +1,20 @@
 package cn.thens.xflow.flow;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * @author 7hens
  */
-class FlowToList<T> implements Flow.Operator<T, List<T>> {
-    @Override
-    public Collector<T> apply(final Emitter<List<T>> emitter) {
-        return new Collector<T>() {
-            List<T> list = new ArrayList<>();
+class FlowToCollection<T, C extends Collection<T>> implements Flow.Operator<T, C> {
+    private final C list;
 
+    FlowToCollection(C collection) {
+        this.list = collection;
+    }
+
+    @Override
+    public Collector<T> apply(final Emitter<C> emitter) {
+        return new Collector<T>() {
             @Override
             public void onCollect(Reply<T> reply) {
                 if (reply.isTerminated()) {

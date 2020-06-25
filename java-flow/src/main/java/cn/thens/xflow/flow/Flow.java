@@ -1,5 +1,7 @@
 package cn.thens.xflow.flow;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -66,8 +68,12 @@ public abstract class Flow<T> {
         return map(mapper).transform(FlowX.flatMerge());
     }
 
+    public <C extends Collection<T>> Flow<C> toCollection(C collection) {
+        return transform(new FlowToCollection<>(collection));
+    }
+
     public Flow<List<T>> toList() {
-        return transform(new FlowToList<>());
+        return toCollection(new ArrayList<>());
     }
 
     public Flow<T> filter(Predicate<T> predicate) {
