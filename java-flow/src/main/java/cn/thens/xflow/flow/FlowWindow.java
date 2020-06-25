@@ -1,7 +1,5 @@
 package cn.thens.xflow.flow;
 
-import java.util.List;
-
 import cn.thens.xflow.func.Func0;
 import cn.thens.xflow.func.Funcs;
 
@@ -58,13 +56,5 @@ class FlowWindow<T> extends AbstractFlow<Flow<T>> {
 
     static <T> FlowWindow<T> window(Flow<T> upFlow, Flow<?> windowFlow) {
         return new FlowWindow<>(upFlow, Funcs.result(windowFlow));
-    }
-
-    static <T> Flow<List<T>> buffer(Flow<T> upFlow, Func0<Flow<?>> windowFlowFactory) {
-        return window(upFlow, windowFlowFactory).flatMap(Flow::toList);
-    }
-
-    static <T> Flow<List<T>> buffer(Flow<T> upFlow, Flow<?> windowFlow) {
-        return buffer(upFlow, Funcs.result(windowFlow));
     }
 }

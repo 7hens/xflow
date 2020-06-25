@@ -1,6 +1,5 @@
 package cn.thens.xflow.flow;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import cn.thens.xflow.func.Predicate;
@@ -80,13 +79,5 @@ abstract class FlowWindowFilter<T> extends AbstractFlow<Flow<T>> {
                 return false;
             }
         };
-    }
-
-    static <T> Flow<List<T>> buffer(Flow<T> upFlow, Predicate<T> shouldClose) {
-        return window(upFlow, shouldClose).flatMap(Flow::toList);
-    }
-
-    static <T> Flow<List<T>> buffer(Flow<T> upFlow, int count) {
-        return window(upFlow, count).flatMap(Flow::toList);
     }
 }

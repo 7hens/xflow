@@ -34,7 +34,13 @@ public class FlowXTest {
 
     @Test
     public void flatZip() {
-        flat(FlowX.flatZip());
+        flat(zipThenJoin());
+    }
+
+    private Flow.Operator<Flow<String>, String> zipThenJoin() {
+        return FlowX.pipe(flow -> flow
+                .transform(FlowX.flatZip())
+                .map(it -> String.join(",", it)));
     }
 
     @Test
