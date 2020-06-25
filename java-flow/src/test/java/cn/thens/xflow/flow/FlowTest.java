@@ -3,6 +3,7 @@ package cn.thens.xflow.flow;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import cn.thens.xflow.TestX;
 
@@ -145,6 +146,32 @@ public class FlowTest {
                 .buffer(3)
                 .take(5)
                 .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void throttleFirst() {
+        Flow.interval(100, TimeUnit.MILLISECONDS)
+//                .onCollect(TestX.collector("A"))
+                .throttleFirst(Flow.timer(170, TimeUnit.MILLISECONDS))
+                .onCollect(TestX.collector("B"))
+                .take(3)
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void throttleLast() {
+        AtomicLong count = new AtomicLong();
+        final long startTime = System.currentTimeMillis();
+        Flow.just(1, 1, 3, 1, 1, 3, 1, 1, 3)
+                .map(it -> Flow.timer(it, TimeUnit.SECONDS))
+                .transform(FlowX.flatConcat())
+//                .onCollect(TestX.collector("A"))
+                .map(it -> count.getAndIncrement())
+                .map(it -> it + " " + ((System.currentTimeMillis() - startTime) / 1000) + "s")
+                .throttleLast(Flow.timer(2, TimeUnit.SECONDS))
+                .onCollect(TestX.collector("B"))
+                .take(3)
                 .to(TestX.collect());
     }
 }

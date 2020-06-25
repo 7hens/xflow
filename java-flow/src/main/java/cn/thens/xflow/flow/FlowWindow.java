@@ -55,6 +55,6 @@ class FlowWindow<T> extends AbstractFlow<Flow<T>> {
     }
 
     static <T> FlowWindow<T> window(Flow<T> upFlow, Flow<?> windowFlow) {
-        return new FlowWindow<>(upFlow, Funcs.result(windowFlow));
+        return new FlowWindow<>(upFlow, Funcs.always(windowFlow));
     }
 }

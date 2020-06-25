@@ -36,7 +36,7 @@ public final class Funcs {
         return SELF;
     }
 
-    private static Result EMPTY_RESULT = result(null);
+    private static Result EMPTY_RESULT = always(null);
 
     @SuppressWarnings("unchecked")
     public static <P1, P2, P3, P4, P5, P6, P7, P8, P9, R>
@@ -45,7 +45,7 @@ public final class Funcs {
     }
 
     public static <P1, P2, P3, P4, P5, P6, P7, P8, P9, R>
-    Result<P1, P2, P3, P4, P5, P6, P7, P8, P9, R> result(R value) {
+    Result<P1, P2, P3, P4, P5, P6, P7, P8, P9, R> always(R value) {
         if (value == null) return empty();
         return new Result<>(value);
     }

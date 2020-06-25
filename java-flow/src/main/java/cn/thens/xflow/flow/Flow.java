@@ -104,6 +104,22 @@ public abstract class Flow<T> {
         return transform(FlowFilter.skip(count));
     }
 
+    public Flow<T> throttleFirst(Func1<T, Flow<?>> flowFactory) {
+        return transform(FlowThrottleFirst.throttleFirst(flowFactory));
+    }
+
+    public Flow<T> throttleFirst(Flow<?> flow) {
+        return transform(FlowThrottleFirst.throttleFirst(flow));
+    }
+
+    public Flow<T> throttleLast(Func1<T, Flow<?>> flowFactory) {
+        return transform(FlowThrottleLast.throttleLast(flowFactory));
+    }
+
+    public Flow<T> throttleLast(Flow<?> flow) {
+        return transform(FlowThrottleLast.throttleLast(flow));
+    }
+
     public Flow<T> take(int count) {
         return transform(FlowTakeUntil.take(count));
     }

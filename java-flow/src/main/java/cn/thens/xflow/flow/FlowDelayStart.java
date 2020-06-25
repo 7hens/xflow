@@ -37,6 +37,6 @@ class FlowDelayStart<T> extends AbstractFlow<T> {
     }
 
     public static <T> FlowDelayStart<T> delayStart(Flow<T> upFlow, Flow<?> delayFlow) {
-        return delayStart(upFlow, Funcs.result(delayFlow));
+        return delayStart(upFlow, Funcs.always(delayFlow));
     }
 }

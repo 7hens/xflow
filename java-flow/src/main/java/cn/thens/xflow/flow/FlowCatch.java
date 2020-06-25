@@ -49,7 +49,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
     }
 
     static <T> Flow<T> catchError(Flow<T> upFlow, Flow<T> resumeFlow) {
-        return catchError(upFlow, Funcs.result(resumeFlow));
+        return catchError(upFlow, Funcs.always(resumeFlow));
     }
 
     static <T> Flow<T> retry(Flow<T> upFlow, Predicate<Throwable> predicate) {
