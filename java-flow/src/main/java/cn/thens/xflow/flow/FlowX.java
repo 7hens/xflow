@@ -1,5 +1,6 @@
 package cn.thens.xflow.flow;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.func.Func1;
@@ -66,7 +67,7 @@ public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
 
     private static FlowX FLAT_ZIP = wrap(new FlowXFlatZip());
 
-    public static <T> FlowX<Flow<T>, T> flatZip() {
+    public static <T> FlowX<Flow<T>, List<T>> flatZip() {
         return FLAT_ZIP;
     }
 }

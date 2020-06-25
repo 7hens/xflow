@@ -202,7 +202,7 @@ public abstract class Flow<T> {
         return FlowWindow.window(this, windowFlow);
     }
 
-    public Flow<Flow<T>> window(Predicate<T > shouldClose) {
+    public Flow<Flow<T>> window(Predicate<T> shouldClose) {
         return FlowWindowFilter.window(this, shouldClose);
     }
 
@@ -218,12 +218,28 @@ public abstract class Flow<T> {
         return FlowWindow.buffer(this, windowFlow);
     }
 
-    public Flow<List<T>> buffer(Predicate<T > shouldClose) {
+    public Flow<List<T>> buffer(Predicate<T> shouldClose) {
         return FlowWindowFilter.buffer(this, shouldClose);
     }
 
     public Flow<List<T>> buffer(int count) {
         return FlowWindowFilter.buffer(this, count);
+    }
+
+    public Flow<T> mergeWith(Flow<T> flow) {
+        return Flow.just(this, flow).transform(FlowX.flatMerge());
+    }
+
+    public Flow<T> concatWith(Flow<T> flow) {
+        return Flow.just(this, flow).transform(FlowX.flatConcat());
+    }
+
+    public Flow<T> switchWith(Flow<T> flow) {
+        return Flow.just(this, flow).transform(FlowX.flatSwitch());
+    }
+
+    public Flow<List<T>> zipWith(Flow<T> flow) {
+        return Flow.just(this, flow).transform(FlowX.flatZip());
     }
 
     public static <T> Flow<T> create(Action1<Emitter<T>> onStart) {
