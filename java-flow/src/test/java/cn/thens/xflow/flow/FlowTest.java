@@ -5,7 +5,6 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 import cn.thens.xflow.TestX;
-import cn.thens.xflow.cancellable.Cancellable;
 
 /**
  * @author 7hens
@@ -135,9 +134,7 @@ public class FlowTest {
     public void buffer() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .buffer(Flow.timer(2, TimeUnit.SECONDS))
-                .map(it -> it.toList().onCollect(TestX.collector("A")))
                 .take(5)
-                .transform(FlowX.flatMerge())
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }

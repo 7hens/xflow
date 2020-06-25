@@ -194,12 +194,20 @@ public abstract class Flow<T> {
         return FlowCatch.retry(this, predicate);
     }
 
-    public Flow<Flow<T>> buffer(Func0<Flow<?>> windowFlowFactory) {
-        return FlowBuffer.buffer(this, windowFlowFactory);
+    public Flow<Flow<T>> window(Func0<Flow<?>> windowFlowFactory) {
+        return FlowWindow.window(this, windowFlowFactory);
     }
 
-    public Flow<Flow<T>> buffer(Flow<?> windowFlow) {
-        return FlowBuffer.buffer(this, windowFlow);
+    public Flow<Flow<T>> window(Flow<?> windowFlow) {
+        return FlowWindow.window(this, windowFlow);
+    }
+
+    public Flow<List<T>> buffer(Func0<Flow<?>> windowFlowFactory) {
+        return FlowWindow.buffer(this, windowFlowFactory);
+    }
+
+    public Flow<List<T>> buffer(Flow<?> windowFlow) {
+        return FlowWindow.buffer(this, windowFlow);
     }
 
     public static <T> Flow<T> create(Action1<Emitter<T>> onStart) {

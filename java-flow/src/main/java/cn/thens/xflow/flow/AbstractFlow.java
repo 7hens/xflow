@@ -11,11 +11,16 @@ abstract class AbstractFlow<T> extends Flow<T> {
     @Override
     protected Cancellable collect(Scheduler scheduler, Collector<T> collector) {
         CollectorEmitter<T> emitter = new CollectorEmitter<>(scheduler, collector);
-        try {
-            onStart(emitter);
-        } catch (Throwable e) {
-            emitter.error(e);
-        }
+        emitter.scheduler().schedule(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    onStart(emitter);
+                } catch (Throwable e) {
+                    emitter.error(e);
+                }
+            }
+        });
         return emitter;
     }
 
