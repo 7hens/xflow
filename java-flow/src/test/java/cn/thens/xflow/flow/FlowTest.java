@@ -186,11 +186,10 @@ public class FlowTest {
                 .to(TestX.collect());
     }
 
-    @Test
-    public void backpressure() {
+    private void backpressure(Backpressure<Long> backpressure) {
         Flow.interval(100, TimeUnit.MILLISECONDS)
 //                .onCollect(TestX.collector("A"))
-                .onBackpressure(Backpressure.dropOldest(2))
+                .onBackpressure(backpressure)
                 .map(it -> {
                     TestX.delay(400);
                     return it;
@@ -198,5 +197,20 @@ public class FlowTest {
                 .onCollect(TestX.collector("B"))
                 .take(6)
                 .to(TestX.collect());
+    }
+
+    @Test
+    public void onBackpressureDropOldest() {
+        backpressure(Backpressure.<Long>buffer(2).dropOldest());
+    }
+
+    @Test
+    public void onBackpressureDropLatest() {
+        backpressure(Backpressure.<Long>buffer(2).dropLatest());
+    }
+
+    @Test
+    public void onBackpressureDropAll() {
+        backpressure(Backpressure.<Long>buffer(2).dropAll());
     }
 }
