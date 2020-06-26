@@ -12,6 +12,7 @@ import cn.thens.xflow.flow.Flow;
 /**
  * @author 7hens
  */
+@SuppressWarnings("WeakerAccess")
 public class AndroidFlow {
     public static Flow<Lifecycle.Event> lifecycle(final LifecycleOwner lifecycleOwner) {
         return Flow.create(emitter -> {

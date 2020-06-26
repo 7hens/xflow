@@ -7,6 +7,7 @@ import cn.thens.xflow.scheduler.Scheduler;
 /**
  * @author 7hens
  */
+@SuppressWarnings("WeakerAccess")
 public final class AndroidSchedulers {
     public static Scheduler from(Looper looper) {
         return new LooperScheduler(looper);

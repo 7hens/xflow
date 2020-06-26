@@ -12,7 +12,7 @@ import cn.thens.xflow.scheduler.Scheduler;
 /**
  * @author 7hens
  */
-public class LooperScheduler extends Scheduler {
+class LooperScheduler extends Scheduler {
     private final Handler handler;
 
     LooperScheduler(Looper looper) {

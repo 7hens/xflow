@@ -32,6 +32,8 @@ dependencies {
     implementation "io.reactivex.rxjava3:rxjava:3.0.4"
     implementation project(':java-flow')
     implementation project(':android-flow')
+//    implementation 'com.github.7hens.xflow:java-flow:0.1'
+//    implementation 'com.github.7hens.xflow:android-flow:0.1'
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
