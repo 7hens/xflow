@@ -1,6 +1,7 @@
 package cn.thens.xflow.flow;
 
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cn.thens.xflow.cancellable.Cancellable;
@@ -36,10 +37,11 @@ class FlowThrottleFirst<T> implements FlowOperator<T, T> {
                         @Override
                         protected void onTerminate(Throwable error) throws Throwable {
                             super.onTerminate(error);
-                            couldEmit.set(true);
+                            if (!(error instanceof CancellationException)) {
+                                couldEmit.set(true);
+                            }
                         }
                     });
-                    System.out.println("##, " + reply.data() + ", couldEmit: " + couldEmit.get());
                     if (couldEmit.compareAndSet(true, false)) {
                         emitter.emit(reply);
                     }

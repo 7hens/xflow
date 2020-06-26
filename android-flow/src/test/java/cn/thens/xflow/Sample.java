@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import cn.thens.xflow.flow.CollectorHelper;
 import cn.thens.xflow.flow.Flow;
-import cn.thens.xflow.flow.FlowX;
 import cn.thens.xflow.scheduler.Schedulers;
 
 /**

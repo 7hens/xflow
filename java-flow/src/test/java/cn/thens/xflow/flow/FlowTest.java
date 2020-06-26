@@ -166,16 +166,23 @@ public class FlowTest {
                 .polyMap(it -> Flow.timer(it, TimeUnit.SECONDS))
                 .flatConcat()
                 .repeat()
-//                .onCollect(TestX.collector("A"))
                 .map(it -> {
                     long elapsedSeconds =  (System.currentTimeMillis() - startTime) / 1000;
-                    return count.getAndIncrement() + " " + elapsedSeconds + "s";
+                    return count.incrementAndGet() + " " + elapsedSeconds + "s";
                 })
                 .onCollect(TestX.collector("A"))
-                .throttleLast(Flow.timer(2, TimeUnit.SECONDS))
                 .transform(operator)
-//                .onCollect(TestX.collector("B"))
+                .onCollect(TestX.collector("B"))
                 .take(3)
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void pipe() {
+        Flow.just(1, 2, 3)
+                .onCollect(TestX.collector("A"))
+                .transform(FlowX.pipe(it -> it.map(i -> i + 10)))
+                .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }
 }
