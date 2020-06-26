@@ -6,7 +6,7 @@ import cn.thens.xflow.func.Funcs;
 /**
  * @author 7hens
  */
-class FlowWindow<T> extends AbstractFlow<Flow<T>> {
+class FlowWindow<T> extends AbstractPolyFlow<T > {
     private final Flow<T> upFlow;
     private final Func0<Flow<?>> windowFlowFactory;
     private Emitter<T> currentEmitter;

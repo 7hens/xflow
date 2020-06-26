@@ -9,14 +9,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author 7hens
  */
-class FlowXFlatZip<T> implements Flow.Operator<Flow<T>, List<T>> {
+class PolyFlowFlatZip<T> extends AbstractFlow<List<T>> {
+    private final PolyFlow<T> upFlow;
+
+    PolyFlowFlatZip(PolyFlow<T> upFlow) {
+        this.upFlow = upFlow;
+    }
 
     @Override
-    public Collector<Flow<T>> apply(Emitter<List<T>> emitter) {
-        return new CollectorHelper<Flow<T>>() {
+    protected void onStart(CollectorEmitter<List<T>> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flow<T>>() {
             final Queue<Queue<T>> cachedDataQueue = new LinkedList<>();
             final AtomicBoolean isOuterFlowTerminated = new AtomicBoolean(false);
-            final FlowXFlatHelper helper = FlowXFlatHelper.create(emitter);
+            final PolyFlowFlatHelper helper = PolyFlowFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {
@@ -66,6 +71,6 @@ class FlowXFlatZip<T> implements Flow.Operator<Flow<T>, List<T>> {
                     emitter.data(result);
                 }
             }
-        };
+        });
     }
 }

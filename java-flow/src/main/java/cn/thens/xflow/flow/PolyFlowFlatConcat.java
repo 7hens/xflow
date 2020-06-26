@@ -7,13 +7,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author 7hens
  */
-public class FlowXFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
+class PolyFlowFlatConcat<T> extends AbstractFlow<T> {
+    private final PolyFlow<T> upFlow;
+
+    PolyFlowFlatConcat(PolyFlow<T> upFlow) {
+        this.upFlow = upFlow;
+    }
+
     @Override
-    public Collector<Flow<T>> apply(final Emitter<T> emitter) {
-        return new Collector<Flow<T>>() {
+    protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flow<T>>() {
             final Queue<Flow<T>> flowQueue = new LinkedList<>();
             final AtomicBoolean isCollecting = new AtomicBoolean(false);
-            final FlowXFlatHelper helper = FlowXFlatHelper.create(emitter);
+            final PolyFlowFlatHelper helper = PolyFlowFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {
@@ -21,7 +27,7 @@ public class FlowXFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
                 if (reply.isTerminated()) return;
                 Flow<T> flow = reply.data();
                 if (isCollecting.compareAndSet(false, true)) {
-                    flow.collect(emitter,innerCollector);
+                    flow.collect(emitter, innerCollector);
                     return;
                 }
                 flowQueue.add(flow);
@@ -47,6 +53,6 @@ public class FlowXFlatConcat<T> implements Flow.Operator<Flow<T>, T> {
                     emitter.emit(reply);
                 }
             };
-        };
+        });
     }
 }

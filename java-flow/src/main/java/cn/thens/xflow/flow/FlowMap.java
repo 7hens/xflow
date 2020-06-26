@@ -5,7 +5,7 @@ import cn.thens.xflow.func.Func1;
 /**
  * @author 7hens
  */
-class FlowMap<T, R> implements Flow.Operator<T, R> {
+class FlowMap<T, R> implements FlowOperator<T, R> {
     private final Func1<T, R> mapper;
 
     FlowMap(Func1<T, R> mapper) {

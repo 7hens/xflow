@@ -7,12 +7,18 @@ import cn.thens.xflow.cancellable.Cancellable;
 /**
  * @author 7hens
  */
-class FlowXFlatSwitch<T> implements Flow.Operator<Flow<T>, T> {
+class PolyFlowFlatSwitch<T> extends AbstractFlow<T> {
+    private final PolyFlow<T> upFlow;
+
+    PolyFlowFlatSwitch(PolyFlow<T> upFlow) {
+        this.upFlow = upFlow;
+    }
+
     @Override
-    public Collector<Flow<T>> apply(Emitter<T> emitter) {
-        return new CollectorHelper<Flow<T>>() {
+    protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flow<T>>() {
             final AtomicReference<Cancellable> lastCancellable = new AtomicReference<>(null);
-            final FlowXFlatHelper helper = FlowXFlatHelper.create(emitter);
+            final PolyFlowFlatHelper helper = PolyFlowFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {
@@ -38,6 +44,6 @@ class FlowXFlatSwitch<T> implements Flow.Operator<Flow<T>, T> {
                     emitter.emit(reply);
                 }
             };
-        };
+        });
     }
 }

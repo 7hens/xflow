@@ -5,7 +5,7 @@ import java.util.Collection;
 /**
  * @author 7hens
  */
-class FlowToCollection<T, C extends Collection<T>> implements Flow.Operator<T, C> {
+class FlowToCollection<T, C extends Collection<T>> implements FlowOperator<T, C> {
     private final C list;
 
     FlowToCollection(C collection) {

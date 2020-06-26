@@ -159,12 +159,12 @@ public class FlowTest {
         throttle(FlowX.pipe(it -> it.throttleLast(Flow.timer(2, TimeUnit.SECONDS))));
     }
 
-    private void throttle(Flow.Operator<String, String> operator) {
+    private void throttle(FlowOperator<String, String> operator) {
         AtomicLong count = new AtomicLong(0);
         final long startTime = System.currentTimeMillis();
         Flow.just(1, 1, 3)
-                .map(it -> Flow.timer(it, TimeUnit.SECONDS))
-                .transform(FlowX.flatConcat())
+                .polyMap(it -> Flow.timer(it, TimeUnit.SECONDS))
+                .flatConcat()
                 .repeat()
 //                .onCollect(TestX.collector("A"))
                 .map(it -> {

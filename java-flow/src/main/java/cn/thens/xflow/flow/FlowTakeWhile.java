@@ -6,7 +6,7 @@ import cn.thens.xflow.func.Predicate;
 /**
  * @author 7hens
  */
-abstract class FlowTakeWhile<T> implements Flow.Operator<T, T> {
+abstract class FlowTakeWhile<T> implements FlowOperator<T, T> {
     @Override
     public Collector<T> apply(Emitter<T> emitter) {
         return new Collector<T>() {

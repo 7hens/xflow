@@ -7,11 +7,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author 7hens
  */
-public class FlowXDelayErrors<T> implements Flow.Operator<Flow<T>, Flow<T>> {
+class PolyFlowDelayErrors<T> extends AbstractPolyFlow<T> {
+    private final PolyFlow<T> upFlow;
+
+    PolyFlowDelayErrors(PolyFlow<T> upFlow) {
+        this.upFlow = upFlow;
+    }
 
     @Override
-    public Collector<Flow<T>> apply(final Emitter<Flow<T>> emitter) {
-        return new Collector<Flow<T>>() {
+    protected void onStart(CollectorEmitter<Flow<T>> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flow<T>>() {
             final List<Throwable> errors = new ArrayList<>();
             final AtomicInteger restFlowCount = new AtomicInteger(1);
 
@@ -46,6 +51,6 @@ public class FlowXDelayErrors<T> implements Flow.Operator<Flow<T>, Flow<T>> {
                     emitter.error(errors.isEmpty() ? null : new CompositeException(errors));
                 }
             }
-        };
+        });
     }
 }

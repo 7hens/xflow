@@ -11,7 +11,7 @@ import cn.thens.xflow.func.Funcs;
 /**
  * @author 7hens
  */
-class FlowThrottleLast<T> implements Flow.Operator<T, T> {
+class FlowThrottleLast<T> implements FlowOperator<T, T> {
     private final Func1<T, Flow<?>> flowFactory;
     private Cancellable lastFlow = CompositeCancellable.cancelled();
 
@@ -47,11 +47,11 @@ class FlowThrottleLast<T> implements Flow.Operator<T, T> {
         };
     }
 
-    static <T> Flow.Operator<T, T> throttleLast(Func1<T, Flow<?>> flowFactory) {
+    static <T> FlowOperator<T, T> throttleLast(Func1<T, Flow<?>> flowFactory) {
         return new FlowThrottleLast<T>(flowFactory);
     }
 
-    static <T> Flow.Operator<T, T> throttleLast(Flow<?> flow) {
+    static <T> FlowOperator<T, T> throttleLast(Flow<?> flow) {
         return new FlowThrottleLast<T>(Funcs.always(flow));
     }
 }

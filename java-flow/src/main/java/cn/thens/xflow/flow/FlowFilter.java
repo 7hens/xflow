@@ -14,7 +14,7 @@ import cn.thens.xflow.func.PredicateHelper;
 /**
  * @author 7hens
  */
-abstract class FlowFilter<T> implements Flow.Operator<T, T> {
+abstract class FlowFilter<T> implements FlowOperator<T, T> {
     @Override
     public Collector<T> apply(final Emitter<T> emitter) {
         return new Collector<T>() {

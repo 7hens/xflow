@@ -11,7 +11,7 @@ import cn.thens.xflow.func.Funcs;
 /**
  * @author 7hens
  */
-class FlowThrottleFirst<T> implements Flow.Operator<T, T> {
+class FlowThrottleFirst<T> implements FlowOperator<T, T> {
     private final Func1<T, Flow<?>> flowFactory;
     private final AtomicBoolean couldEmit = new AtomicBoolean(true);
     private Cancellable lastFlow = CompositeCancellable.cancelled();
@@ -50,11 +50,11 @@ class FlowThrottleFirst<T> implements Flow.Operator<T, T> {
         };
     }
 
-    static <T> Flow.Operator<T, T> throttleFirst(Func1<T, Flow<?>> flowFactory) {
+    static <T> FlowOperator<T, T> throttleFirst(Func1<T, Flow<?>> flowFactory) {
         return new FlowThrottleFirst<>(flowFactory);
     }
 
-    static <T> Flow.Operator<T, T> throttleFirst(Flow<?> flow) {
+    static <T> FlowOperator<T, T> throttleFirst(Flow<?> flow) {
         return new FlowThrottleFirst<>(Funcs.always(flow));
     }
 }

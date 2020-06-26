@@ -3,11 +3,17 @@ package cn.thens.xflow.flow;
 /**
  * @author 7hens
  */
-class FlowXFlatMerge<T> implements Flow.Operator<Flow<T>, T> {
+class PolyFlowFlatMerge<T> extends AbstractFlow<T> {
+    private final PolyFlow<T> upFlow;
+
+    PolyFlowFlatMerge(PolyFlow<T> upFlow) {
+        this.upFlow = upFlow;
+    }
+
     @Override
-    public Collector<Flow<T>> apply(Emitter<T> emitter) {
-        return new Collector<Flow<T>>() {
-            final FlowXFlatHelper helper = FlowXFlatHelper.create(emitter);
+    protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flow<T>>() {
+            final PolyFlowFlatHelper helper = PolyFlowFlatHelper.create(emitter);
 
             @Override
             public void onCollect(Reply<Flow<T>> reply) {
@@ -25,6 +31,6 @@ class FlowXFlatMerge<T> implements Flow.Operator<Flow<T>, T> {
                     emitter.emit(reply);
                 }
             };
-        };
+        });
     }
 }

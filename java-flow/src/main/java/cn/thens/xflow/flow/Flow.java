@@ -1,6 +1,7 @@
 package cn.thens.xflow.flow;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -20,9 +21,6 @@ import cn.thens.xflow.scheduler.Schedulers;
  */
 @SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
 public abstract class Flow<T> {
-    public interface Operator<Up, Dn> {
-        Collector<Up> apply(Emitter<Dn> emitter);
-    }
 
     protected abstract Cancellable collect(Scheduler scheduler, Collector<T> collector);
 
@@ -41,18 +39,18 @@ public abstract class Flow<T> {
     }
 
     public Flow<T> flowOn(Scheduler upScheduler) {
-        return new FlowFlowOn<T>(this, upScheduler);
+        return new FlowFlowOn<>(this, upScheduler);
     }
 
-    public <R> R to(Func1<Flow<T>, R> func) {
+    public <R> R to(Func1<? super Flow<T>, R> converter) {
         try {
-            return func.invoke(this);
+            return converter.invoke(this);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
-    public <R> Flow<R> transform(Operator<T, R> operator) {
+    public <R> Flow<R> transform(FlowOperator<T, R> operator) {
         return new FlowTransform<>(this, operator);
     }
 
@@ -60,12 +58,24 @@ public abstract class Flow<T> {
         return new FlowOnCollect<>(this, collector);
     }
 
+    @SafeVarargs
+    public final PolyFlow<T> polyWith(Flow<T>... flows) {
+        ArrayList<Flow<T>> flowList = new ArrayList<>();
+        flowList.add(this);
+        flowList.addAll(Arrays.asList(flows));
+        return from(flowList).to(FlowX.poly());
+    }
+
     public <R> Flow<R> map(Func1<T, R> mapper) {
         return transform(new FlowMap<>(mapper));
     }
 
+    public <R> PolyFlow<R> polyMap(Func1<T, Flow<R>> mapper) {
+        return transform(new FlowMap<>(mapper)).to(FlowX.poly());
+    }
+
     public <R> Flow<R> flatMap(Func1<T, Flow<R>> mapper) {
-        return map(mapper).transform(FlowX.flatMerge());
+        return polyMap(mapper).flatMerge();
     }
 
     public <C extends Collection<T>> Flow<C> toCollection(C collection) {
@@ -228,19 +238,19 @@ public abstract class Flow<T> {
         return FlowCatch.retry(this, predicate);
     }
 
-    public Flow<Flow<T>> window(Func0<Flow<?>> windowFlowFactory) {
+    public PolyFlow<T> window(Func0<Flow<?>> windowFlowFactory) {
         return FlowWindow.window(this, windowFlowFactory);
     }
 
-    public Flow<Flow<T>> window(Flow<?> windowFlow) {
+    public PolyFlow<T> window(Flow<?> windowFlow) {
         return FlowWindow.window(this, windowFlow);
     }
 
-    public Flow<Flow<T>> window(Predicate<T> shouldClose) {
+    public PolyFlow<T> window(Predicate<T> shouldClose) {
         return FlowWindowFilter.window(this, shouldClose);
     }
 
-    public Flow<Flow<T>> window(int count) {
+    public PolyFlow<T> window(int count) {
         return FlowWindowFilter.window(this, count);
     }
 

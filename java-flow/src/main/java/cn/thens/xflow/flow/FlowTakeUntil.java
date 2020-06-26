@@ -7,7 +7,7 @@ import cn.thens.xflow.func.PredicateHelper;
 /**
  * @author 7hens
  */
-abstract class FlowTakeUntil<T> implements Flow.Operator<T, T> {
+abstract class FlowTakeUntil<T> implements FlowOperator<T, T> {
     @Override
     public Collector<T> apply(Emitter<T> emitter) {
         return new Collector<T>() {
@@ -49,7 +49,7 @@ abstract class FlowTakeUntil<T> implements Flow.Operator<T, T> {
         };
     }
 
-    static <T> Flow.Operator<T, T> take(int count) {
+    static <T> FlowOperator<T, T> take(int count) {
         if (count <= 0) {
             return emitter -> {
                 emitter.complete();

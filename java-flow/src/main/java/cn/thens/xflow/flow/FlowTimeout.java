@@ -8,7 +8,7 @@ import cn.thens.xflow.cancellable.Cancellable;
 /**
  * @author 7hens
  */
-public class FlowTimeout<T> implements Flow.Operator<T, T> {
+public class FlowTimeout<T> implements FlowOperator<T, T> {
     private final long timeout;
     private final TimeUnit unit;
     private final Flow<T> fallback;

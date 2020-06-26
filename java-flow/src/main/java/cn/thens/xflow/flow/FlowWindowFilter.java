@@ -7,7 +7,7 @@ import cn.thens.xflow.func.Predicate;
 /**
  * @author 7hens
  */
-abstract class FlowWindowFilter<T> extends AbstractFlow<Flow<T>> {
+abstract class FlowWindowFilter<T> extends AbstractPolyFlow<T> {
     private final Flow<T> upFlow;
     private Emitter<T> currentEmitter;
 

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author 7hens
  */
-abstract class FlowXFlatHelper {
+abstract class PolyFlowFlatHelper {
     private final AtomicInteger restFlowCount = new AtomicInteger(1);
 
     abstract void onTerminate(Throwable error);
@@ -40,8 +40,8 @@ abstract class FlowXFlatHelper {
         }
     }
 
-    static FlowXFlatHelper create(Emitter<?> emitter) {
-        return new FlowXFlatHelper() {
+    static PolyFlowFlatHelper create(Emitter<?> emitter) {
+        return new PolyFlowFlatHelper() {
             @Override
             void onTerminate(Throwable error) {
                 emitter.error(error);

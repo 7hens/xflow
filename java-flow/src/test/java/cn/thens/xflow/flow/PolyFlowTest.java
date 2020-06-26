@@ -5,23 +5,24 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 import cn.thens.xflow.TestX;
+import cn.thens.xflow.func.Func1;
 
 /**
  * @author 7hens
  */
-public class FlowXTest {
-    private void flat(Flow.Operator<Flow<String>, String> operator) {
+public class PolyFlowTest {
+    private void flat(Func1<PolyFlow<String>, Flow<String>> converter) {
         Flow.interval(2, TimeUnit.SECONDS)
                 .take(3)
                 .onCollect(TestX.collector("A"))
                 .flowOn(TestX.scheduler("a"))
-                .map(it -> Flow.interval(1, TimeUnit.SECONDS)
-                        .take(3)
+                .polyMap(it -> Flow.interval(1, TimeUnit.SECONDS)
+                        .take(5)
                         .map(t -> {
-                            if (t == 2) throw new RuntimeException();
+                            if (t == 4) throw new RuntimeException();
                             return it + "." + t;
                         }))
-                .transform(operator)
+                .polyTo(converter)
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
     }
@@ -29,33 +30,27 @@ public class FlowXTest {
 
     @Test
     public void delayErrors() {
-        flat(FlowX.<String>delayErrors().then(FlowX.flatMerge()));
+        flat(flow -> flow.delayErrors().flatMerge());
     }
 
     @Test
     public void flatZip() {
-        flat(zipThenJoin());
-    }
-
-    private Flow.Operator<Flow<String>, String> zipThenJoin() {
-        return FlowX.pipe(flow -> flow
-                .transform(FlowX.flatZip())
-                .map(it -> String.join(",", it)));
+        flat(flow -> flow.flatZip().map(it -> String.join(",", it)));
     }
 
     @Test
     public void flatSwitch() {
-        flat(FlowX.flatSwitch());
+        flat(PolyFlow::flatSwitch);
     }
 
     @Test
     public void flatMerge() {
-        flat(FlowX.flatMerge());
+        flat(PolyFlow::flatMerge);
     }
 
     @Test
     public void flatConcat() {
-        flat(FlowX.flatConcat());
+        flat(PolyFlow::flatConcat);
     }
 
     @Test

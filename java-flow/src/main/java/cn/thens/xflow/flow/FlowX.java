@@ -1,37 +1,30 @@
 package cn.thens.xflow.flow;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.scheduler.Scheduler;
 
 /**
  * @author 7hens
  */
-@SuppressWarnings("unchecked")
-public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
+@SuppressWarnings("WeakerAccess")
+public final class FlowX {
+    private FlowX() {
+    }
 
-    public final <T> FlowX<Up, T> then(Flow.Operator<Dn, T> operator) {
-        FlowX<Up, Dn> self = this;
-        return new FlowX<Up, T>() {
+    public static <T> Func1<Flow<Flow<T>>, PolyFlow<T>> poly() {
+        return flow -> new PolyFlow<T>() {
             @Override
-            public Collector<Up> apply(Emitter<T> emitter) {
-                return self.apply(new CollectorEmitter(emitter.scheduler(), operator.apply(emitter)));
+            protected Cancellable collect(Scheduler scheduler, Collector<Flow<T>> collector) {
+                return flow.collect(scheduler, collector);
             }
         };
     }
 
-    public static <Up, Dn> FlowX<Up, Dn> wrap(final Flow.Operator<Up, Dn> operator) {
-        return new FlowX<Up, Dn>() {
-            @Override
-            public Collector<Up> apply(Emitter<Dn> emitter) {
-                return operator.apply(emitter);
-            }
-        };
-    }
-
-    public static <Up, Dn> FlowX<Up, Dn> pipe(Func1<Flow<Up>, Flow<Dn>> action) {
-        return new FlowX<Up, Dn>() {
+    public static <Up, Dn> Operator<Up, Dn> pipe(Func1<Flow<Up>, Flow<Dn>> action) {
+        return new Operator<Up, Dn>() {
             @Override
             public Collector<Up> apply(Emitter<Dn> emitter) {
                 AtomicReference<Emitter<Up>> upEmitterRef = new AtomicReference<>();
@@ -41,33 +34,24 @@ public abstract class FlowX<Up, Dn> implements Flow.Operator<Up, Dn> {
         };
     }
 
-    private static FlowX FLAT_DELAY_ERRORS = wrap(new FlowXDelayErrors());
-
-    public static <T> FlowX<Flow<T>, Flow<T>> delayErrors() {
-        return FLAT_DELAY_ERRORS;
+    public static <Up, Dn> Operator<Up, Dn> wrap(FlowOperator<Up, Dn> operator) {
+        return new Operator<Up, Dn>() {
+            @Override
+            public Collector<Up> apply(Emitter<Dn> emitter) {
+                return operator.apply(emitter);
+            }
+        };
     }
 
-    private static FlowX FLAT_MERGE = wrap(new FlowXFlatMerge());
-
-    public static <T> FlowX<Flow<T>, T> flatMerge() {
-        return FLAT_MERGE;
-    }
-
-    private static FlowX FLAT_CONCAT = wrap(new FlowXFlatConcat());
-
-    public static <T> FlowX<Flow<T>, T> flatConcat() {
-        return FLAT_CONCAT;
-    }
-
-    private static FlowX FLAT_SWITCH = wrap(new FlowXFlatSwitch());
-
-    public static <T> FlowX<Flow<T>, T> flatSwitch() {
-        return FLAT_SWITCH;
-    }
-
-    private static FlowX FLAT_ZIP = wrap(new FlowXFlatZip());
-
-    public static <T> FlowX<Flow<T>, List<T>> flatZip() {
-        return FLAT_ZIP;
+    public static abstract class Operator<Up, Dn> implements FlowOperator<Up, Dn> {
+        public <T> Operator<Up, T> then(FlowOperator<Dn, T> operator) {
+            Operator<Up, Dn> self = this;
+            return new Operator<Up, T>() {
+                @Override
+                public Collector<Up> apply(Emitter<T> emitter) {
+                    return self.apply(new CollectorEmitter<>(emitter.scheduler(), operator.apply(emitter)));
+                }
+            };
+        }
     }
 }

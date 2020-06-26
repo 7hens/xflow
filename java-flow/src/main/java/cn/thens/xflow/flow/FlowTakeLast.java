@@ -8,7 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * @author 7hens
  */
-class FlowTakeLast<T> implements Flow.Operator<T, T> {
+class FlowTakeLast<T> implements FlowOperator<T, T> {
     private final List<T> cacheItems = new CopyOnWriteArrayList<>();
     private final int count;
 

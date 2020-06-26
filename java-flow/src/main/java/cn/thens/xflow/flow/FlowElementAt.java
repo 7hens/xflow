@@ -9,7 +9,7 @@ import cn.thens.xflow.func.PredicateHelper;
 /**
  * @author 7hens
  */
-abstract class FlowElementAt<T> implements Flow.Operator<T, T> {
+abstract class FlowElementAt<T> implements FlowOperator<T, T> {
     @Override
     public Collector<T> apply(Emitter<T> emitter) {
         return reply -> {
