@@ -71,7 +71,7 @@ public abstract class Flow<T> {
     }
 
     public <R> PolyFlow<R> polyMap(Func1<T, Flow<R>> mapper) {
-        return transform(new FlowMap<>(mapper)).to(FlowX.poly());
+        return map(mapper).to(FlowX.poly());
     }
 
     public <R> Flow<R> flatMap(Func1<T, Flow<R>> mapper) {
@@ -260,6 +260,10 @@ public abstract class Flow<T> {
 
     public Flow<List<T>> buffer(int count) {
         return FlowWindowFilter.window(this, count).flatMap(Flow::toList);
+    }
+
+    public Flow<T> onBackpressure(Backpressure<T> backpressure) {
+        return new FlowOnBackpressure<>(this, backpressure);
     }
 
     public static <T> Flow<T> create(Action1<Emitter<T>> onStart) {

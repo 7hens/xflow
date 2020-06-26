@@ -12,17 +12,17 @@ import cn.thens.xflow.scheduler.Scheduler;
 /**
  * @author 7hens
  */
-class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Collector<T>, Runnable {
+abstract class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Collector<T>, Runnable {
     private final AtomicBoolean isCollecting = new AtomicBoolean(false);
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);
     private final Queue<Reply<T>> replyQueue = new LinkedList<>();
-    private final Collector<T> collector;
     private final CancellableScheduler scheduler;
 
-    CollectorEmitter(Scheduler scheduler, Collector<T> collector) {
+    CollectorEmitter(Scheduler scheduler) {
         this.scheduler = scheduler.cancellable();
-        this.collector = collector;
     }
+
+    abstract Collector<T> collector();
 
     @Override
     public void emit(Reply<T> reply) {
@@ -38,7 +38,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
             isTerminated.set(true);
         }
         if (reply.isCancel()) {
-            collector.onCollect(reply);
+            collector().onCollect(reply);
             super.cancel();
             return;
         }
@@ -54,7 +54,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
         try {
             while (!isCancelled() && !replyQueue.isEmpty()) {
                 Reply<T> reply = replyQueue.poll();
-                collector.onCollect(reply);
+                collector().onCollect(reply);
                 if (reply.isTerminated()) {
                     super.cancel();
                     return;
@@ -99,5 +99,14 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
     protected void onCancel() {
         super.onCancel();
         scheduler.cancel();
+    }
+
+    static <T> CollectorEmitter<T> create(Scheduler scheduler, Collector<T> collector) {
+        return new CollectorEmitter<T>(scheduler) {
+            @Override
+            Collector<T> collector() {
+                return collector;
+            }
+        };
     }
 }

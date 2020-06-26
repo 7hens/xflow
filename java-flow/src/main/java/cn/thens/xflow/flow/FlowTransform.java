@@ -17,7 +17,7 @@ class FlowTransform<T, R> extends Flow<R> {
 
     @Override
     protected Cancellable collect(Scheduler scheduler, Collector<R> collector) {
-        CollectorEmitter<R> emitter = new CollectorEmitter<>(scheduler, collector);
+        CollectorEmitter<R> emitter = CollectorEmitter.create(scheduler, collector);
         try {
             upFlow.collect(emitter, operator.apply(emitter));
         } catch (Throwable e) {

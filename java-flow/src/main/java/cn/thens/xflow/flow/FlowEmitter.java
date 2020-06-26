@@ -14,14 +14,19 @@ import cn.thens.xflow.scheduler.Schedulers;
  */
 public class FlowEmitter<T> implements Emitter<T> {
     private List<Emitter<T>> emitters = new CopyOnWriteArrayList<>();
-    private CollectorEmitter<T> collectorEmitter = new CollectorEmitter<>(Schedulers.core(), new Collector<T>() {
+    private CollectorEmitter<T> collectorEmitter = new CollectorEmitter<T>(Schedulers.core()) {
         @Override
-        public void onCollect(Reply<T> reply) {
-            for (Emitter<T> emitter : emitters) {
-                emitter.emit(reply);
-            }
+        Collector<T> collector() {
+            return new Collector<T>() {
+                @Override
+                public void onCollect(Reply<T> reply) {
+                    for (Emitter<T> emitter : emitters) {
+                        emitter.emit(reply);
+                    }
+                }
+            };
         }
-    });
+    };
 
     @Override
     public void emit(Reply<T> reply) {

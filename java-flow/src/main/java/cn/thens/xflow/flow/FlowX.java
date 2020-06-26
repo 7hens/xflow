@@ -49,7 +49,7 @@ public final class FlowX {
             return new Operator<Up, T>() {
                 @Override
                 public Collector<Up> apply(Emitter<T> emitter) {
-                    return self.apply(new CollectorEmitter<>(emitter.scheduler(), operator.apply(emitter)));
+                    return self.apply(CollectorEmitter.create(emitter.scheduler(), operator.apply(emitter)));
                 }
             };
         }
