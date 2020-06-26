@@ -151,26 +151,30 @@ public class FlowTest {
 
     @Test
     public void throttleFirst() {
-        Flow.interval(100, TimeUnit.MILLISECONDS)
-//                .onCollect(TestX.collector("A"))
-                .throttleFirst(Flow.timer(170, TimeUnit.MILLISECONDS))
-                .onCollect(TestX.collector("B"))
-                .take(3)
-                .to(TestX.collect());
+        throttle(FlowX.pipe(it -> it.throttleFirst(Flow.timer(2, TimeUnit.SECONDS))));
     }
 
     @Test
     public void throttleLast() {
-        AtomicLong count = new AtomicLong();
+        throttle(FlowX.pipe(it -> it.throttleLast(Flow.timer(2, TimeUnit.SECONDS))));
+    }
+
+    private void throttle(Flow.Operator<String, String> operator) {
+        AtomicLong count = new AtomicLong(0);
         final long startTime = System.currentTimeMillis();
-        Flow.just(1, 1, 3, 1, 1, 3, 1, 1, 3)
+        Flow.just(1, 1, 3)
                 .map(it -> Flow.timer(it, TimeUnit.SECONDS))
                 .transform(FlowX.flatConcat())
+                .repeat()
 //                .onCollect(TestX.collector("A"))
-                .map(it -> count.getAndIncrement())
-                .map(it -> it + " " + ((System.currentTimeMillis() - startTime) / 1000) + "s")
+                .map(it -> {
+                    long elapsedSeconds =  (System.currentTimeMillis() - startTime) / 1000;
+                    return count.getAndIncrement() + " " + elapsedSeconds + "s";
+                })
+                .onCollect(TestX.collector("A"))
                 .throttleLast(Flow.timer(2, TimeUnit.SECONDS))
-                .onCollect(TestX.collector("B"))
+                .transform(operator)
+//                .onCollect(TestX.collector("B"))
                 .take(3)
                 .to(TestX.collect());
     }

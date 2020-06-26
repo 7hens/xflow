@@ -160,6 +160,18 @@ public abstract class Flow<T> {
         return transform(FlowFilter.last(predicate));
     }
 
+    public Flow<T> repeat() {
+        return FlowRepeat.repeat(this);
+    }
+
+    public Flow<T> repeat(int count) {
+        return FlowRepeat.repeat(this, count);
+    }
+
+    public Flow<T> repeat(Func0<Boolean> shouldRepeat) {
+        return FlowRepeat.repeat(this, shouldRepeat);
+    }
+
     public <R> Flow<R> reduce(R initialValue, Func2<R, ? super T, R> accumulator) {
         return FlowReduce.reduce(this, initialValue, accumulator);
     }

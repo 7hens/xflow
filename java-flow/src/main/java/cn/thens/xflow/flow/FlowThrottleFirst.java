@@ -3,6 +3,8 @@ package cn.thens.xflow.flow;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import cn.thens.xflow.cancellable.Cancellable;
+import cn.thens.xflow.cancellable.CompositeCancellable;
 import cn.thens.xflow.func.Func1;
 import cn.thens.xflow.func.Funcs;
 
@@ -11,7 +13,8 @@ import cn.thens.xflow.func.Funcs;
  */
 class FlowThrottleFirst<T> implements Flow.Operator<T, T> {
     private final Func1<T, Flow<?>> flowFactory;
-    private final AtomicBoolean isLastFlowTerminated = new AtomicBoolean(true);
+    private final AtomicBoolean couldEmit = new AtomicBoolean(true);
+    private Cancellable lastFlow = CompositeCancellable.cancelled();
 
     private FlowThrottleFirst(Func1<T, Flow<?>> flowFactory) {
         this.flowFactory = flowFactory;
@@ -28,14 +31,16 @@ class FlowThrottleFirst<T> implements Flow.Operator<T, T> {
                     return;
                 }
                 try {
-                    if (isLastFlowTerminated.compareAndSet(true, false)) {
-                        flowFactory.invoke(reply.data()).collect(emitter, new CollectorHelper() {
-                            @Override
-                            protected void onTerminate(Throwable error) throws Throwable {
-                                super.onTerminate(error);
-                                isLastFlowTerminated.set(true);
-                            }
-                        });
+                    lastFlow.cancel();
+                    lastFlow = flowFactory.invoke(reply.data()).collect(emitter, new CollectorHelper() {
+                        @Override
+                        protected void onTerminate(Throwable error) throws Throwable {
+                            super.onTerminate(error);
+                            couldEmit.set(true);
+                        }
+                    });
+                    System.out.println("##, " + reply.data() + ", couldEmit: " + couldEmit.get());
+                    if (couldEmit.compareAndSet(true, false)) {
                         emitter.emit(reply);
                     }
                 } catch (Throwable e) {
@@ -46,10 +51,10 @@ class FlowThrottleFirst<T> implements Flow.Operator<T, T> {
     }
 
     static <T> Flow.Operator<T, T> throttleFirst(Func1<T, Flow<?>> flowFactory) {
-        return new FlowThrottleFirst<T>(flowFactory);
+        return new FlowThrottleFirst<>(flowFactory);
     }
 
     static <T> Flow.Operator<T, T> throttleFirst(Flow<?> flow) {
-        return new FlowThrottleFirst<T>(Funcs.always(flow));
+        return new FlowThrottleFirst<>(Funcs.always(flow));
     }
 }
