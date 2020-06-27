@@ -9,7 +9,7 @@ import cn.thens.xflow.func.Predicate;
  */
 abstract class FlowWindowFilter<T> extends AbstractPolyFlow<T> {
     private final Flow<T> upFlow;
-    private Emitter<T> currentEmitter;
+    private Emitter<? super T> currentEmitter;
 
     private FlowWindowFilter(Flow<T> upFlow) {
         this.upFlow = upFlow;
@@ -18,7 +18,7 @@ abstract class FlowWindowFilter<T> extends AbstractPolyFlow<T> {
     abstract boolean shouldClose(T data) throws Throwable;
 
     @Override
-    protected void onStart(CollectorEmitter<Flow<T>> emitter) throws Throwable {
+    protected void onStart(CollectorEmitter<? super Flowable<T>> emitter) throws Throwable {
         emitNewFlow(emitter);
         upFlow.collect(emitter, reply -> {
             if (reply.isTerminated()) {
@@ -41,17 +41,17 @@ abstract class FlowWindowFilter<T> extends AbstractPolyFlow<T> {
         });
     }
 
-    private void emitNewFlow(CollectorEmitter<Flow<T>> emitter) {
+    private void emitNewFlow(CollectorEmitter<? super Flow<T>> emitter) {
         emitInner(Reply.complete());
         emitter.data(new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> innerEmitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super T> innerEmitter) throws Throwable {
                 currentEmitter = innerEmitter;
             }
         });
     }
 
-    private void emitInner(Reply<T> reply) {
+    private void emitInner(Reply<? extends T> reply) {
         if (currentEmitter != null) {
             currentEmitter.emit(reply);
         }

@@ -14,21 +14,21 @@ public final class FlowX {
     private FlowX() {
     }
 
-    public static <T> Func1<Flow<Flow<T>>, PolyFlow<T>> poly() {
+    public static <T> Func1<Flow<? extends Flowable<T>>, PolyFlow<T>> poly() {
         return flow -> new PolyFlow<T>() {
             @Override
-            protected Cancellable collect(Scheduler scheduler, Collector<Flow<T>> collector) {
+            protected Cancellable collect(Scheduler scheduler, Collector<? super Flowable<T>> collector) {
                 return flow.collect(scheduler, collector);
             }
         };
     }
 
-    public static <Up, Dn> Operator<Up, Dn> pipe(Func1<Flow<Up>, Flow<Dn>> action) {
+    public static <Up, Dn> Operator<Up, Dn> pipe(Func1<? super Flow<Up>, ? extends Flow<Dn>> action) {
         return new Operator<Up, Dn>() {
             @Override
-            public Collector<Up> apply(Emitter<Dn> emitter) {
-                AtomicReference<Emitter<Up>> upEmitterRef = new AtomicReference<>();
-                Flow.create(upEmitterRef::set).to(action).collect(emitter);
+            public Collector<? super Up> apply(Emitter<? super Dn> emitter) {
+                AtomicReference<Emitter<? super Up>> upEmitterRef = new AtomicReference<>();
+                Flow.<Up>create(upEmitterRef::set).to(action).collect(emitter);
                 return reply -> upEmitterRef.get().emit(reply);
             }
         };
@@ -37,7 +37,7 @@ public final class FlowX {
     public static <Up, Dn> Operator<Up, Dn> wrap(FlowOperator<Up, Dn> operator) {
         return new Operator<Up, Dn>() {
             @Override
-            public Collector<Up> apply(Emitter<Dn> emitter) {
+            public Collector<? super Up> apply(Emitter<? super Dn> emitter) throws Throwable {
                 return operator.apply(emitter);
             }
         };
@@ -48,7 +48,7 @@ public final class FlowX {
             Operator<Up, Dn> self = this;
             return new Operator<Up, T>() {
                 @Override
-                public Collector<Up> apply(Emitter<T> emitter) {
+                public Collector<? super Up> apply(Emitter<? super T> emitter) throws Throwable {
                     return self.apply(CollectorEmitter.create(emitter.scheduler(), operator.apply(emitter)));
                 }
             };

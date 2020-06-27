@@ -17,10 +17,10 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
     }
 
     @Override
-    protected void onStart(CollectorEmitter<T> emitter) {
+    protected void onStart(CollectorEmitter<? super T> emitter) {
         upFlow.collect(emitter, new Collector<T>() {
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 if (reply.isTerminated()) {
                     Throwable error = reply.error();
                     if (error != null) {
@@ -37,12 +37,12 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
         });
     }
 
-    abstract void handleError(Throwable error, Emitter<T> emitter) throws Throwable;
+    abstract void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable;
 
     static <T> Flow<T> catchError(Flow<T> upFlow, Func1<Throwable, Flow<T>> resumeFunc) {
         return new FlowCatch<T>(upFlow) {
             @Override
-            void handleError(Throwable error, Emitter<T> emitter) throws Throwable {
+            void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable {
                 resumeFunc.invoke(error).collect(emitter);
             }
         };
@@ -55,7 +55,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
     static <T> Flow<T> retry(Flow<T> upFlow, Predicate<Throwable> predicate) {
         return new FlowCatch<T>(upFlow) {
             @Override
-            void handleError(Throwable error, Emitter<T> emitter) throws Throwable {
+            void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable {
                 boolean shouldRetry = predicate.test(error);
                 if (shouldRetry) {
                     collect(emitter);

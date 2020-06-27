@@ -15,27 +15,27 @@ class PolyFlowFlatConcat<T> extends AbstractFlow<T> {
     }
 
     @Override
-    protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
-        upFlow.collect(emitter, new Collector<Flow<T>>() {
-            final Queue<Flow<T>> flowQueue = new LinkedList<>();
+    protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flowable<T>>() {
+            final Queue<Flowable<T>> flowQueue = new LinkedList<>();
             final AtomicBoolean isCollecting = new AtomicBoolean(false);
             final PolyFlowFlatHelper helper = PolyFlowFlatHelper.create(emitter);
 
             @Override
-            public void onCollect(Reply<Flow<T>> reply) {
+            public void onCollect(Reply<? extends Flowable<T>> reply) {
                 helper.onOuterCollect(reply);
                 if (reply.isTerminated()) return;
-                Flow<T> flow = reply.data();
+                Flowable<T> flowable = reply.data();
                 if (isCollecting.compareAndSet(false, true)) {
-                    flow.collect(emitter, innerCollector);
+                    flowable.asFlow().collect(emitter, innerCollector);
                     return;
                 }
-                flowQueue.add(flow);
+                flowQueue.add(flowable);
             }
 
             private final Collector<T> innerCollector = new Collector<T>() {
                 @Override
-                public void onCollect(Reply<T> reply) {
+                public void onCollect(Reply<? extends T> reply) {
                     helper.onInnerCollect(reply);
                     if (emitter.isTerminated()) {
                         flowQueue.clear();
@@ -44,7 +44,7 @@ class PolyFlowFlatConcat<T> extends AbstractFlow<T> {
                     isCollecting.set(true);
                     if (reply.isTerminated()) {
                         if (!flowQueue.isEmpty()) {
-                            flowQueue.poll().collect(emitter, this);
+                            flowQueue.poll().asFlow().collect(emitter, this);
                         } else {
                             isCollecting.set(false);
                         }

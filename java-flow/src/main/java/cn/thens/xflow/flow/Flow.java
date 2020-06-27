@@ -20,21 +20,25 @@ import cn.thens.xflow.scheduler.Schedulers;
  * @author 7hens
  */
 @SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
-public abstract class Flow<T> {
+public abstract class Flow<T> implements Flowable<T> {
+    @Override
+    public Flow<T> asFlow() {
+        return this;
+    }
 
-    protected abstract Cancellable collect(Scheduler scheduler, Collector<T> collector);
+    protected abstract Cancellable collect(Scheduler scheduler, Collector<? super T> collector);
 
     public Cancellable collect() {
         return collect(Schedulers.core(), CollectorHelper.get());
     }
 
-    Cancellable collect(Emitter<?> emitter, Collector<T> collector) {
+    Cancellable collect(Emitter<?> emitter, Collector<? super T> collector) {
         Cancellable cancellable = collect(emitter.scheduler(), collector);
         emitter.addCancellable(cancellable);
         return cancellable;
     }
 
-    Cancellable collect(Emitter<T> emitter) {
+    Cancellable collect(Emitter<? super T> emitter) {
         return collect(emitter, CollectorHelper.from(emitter));
     }
 
@@ -42,7 +46,7 @@ public abstract class Flow<T> {
         return new FlowFlowOn<>(this, upScheduler);
     }
 
-    public <R> R to(Func1<? super Flow<T>, R> converter) {
+    public <R> R to(Func1<? super Flow<T>, ? extends  R> converter) {
         try {
             return converter.invoke(this);
         } catch (Throwable e) {
@@ -66,16 +70,21 @@ public abstract class Flow<T> {
         return from(flowList).to(FlowX.poly());
     }
 
-    public <R> Flow<R> map(Func1<T, R> mapper) {
+    public <R> Flow<R> map(Func1<? super T, ? extends R> mapper) {
         return transform(new FlowMap<>(mapper));
     }
 
-    public <R> PolyFlow<R> polyMap(Func1<T, Flow<R>> mapper) {
+    @Deprecated
+    public <R> PolyFlow<R> polyMap(Func1<? super T, ? extends Flowable<R>> mapper) {
+        return mapToFlow(mapper);
+    }
+
+    public <R> PolyFlow<R> mapToFlow(Func1<? super T, ? extends Flowable<R>> mapper) {
         return map(mapper).to(FlowX.poly());
     }
 
-    public <R> Flow<R> flatMap(Func1<T, Flow<R>> mapper) {
-        return polyMap(mapper).flatMerge();
+    public <R> Flow<R> flatMap(Func1<? super T, ? extends Flowable<R>> mapper) {
+        return mapToFlow(mapper).flatMerge();
     }
 
     public <C extends Collection<T>> Flow<C> toCollection(C collection) {
@@ -198,7 +207,7 @@ public abstract class Flow<T> {
         return timeout(timeout, unit, Flow.error(new TimeoutException()));
     }
 
-    public Flow<T> delay(Func1<? super Reply<T>, ? extends Flow<?>> delayFunc) {
+    public Flow<T> delay(Func1<? super Reply<? extends T>, ? extends Flow<?>> delayFunc) {
         return FlowDelay.delay(this, delayFunc);
     }
 
@@ -255,18 +264,18 @@ public abstract class Flow<T> {
     }
 
     public Flow<List<T>> buffer(Flow<?> windowFlow) {
-        return FlowWindow.window(this, windowFlow).flatMap(Flow::toList);
+        return window(windowFlow).flatToList();
     }
 
     public Flow<List<T>> buffer(int count) {
-        return FlowWindowFilter.window(this, count).flatMap(Flow::toList);
+        return window(count).flatToList();
     }
 
     public Flow<T> onBackpressure(Backpressure<T> backpressure) {
         return new FlowOnBackpressure<>(this, backpressure);
     }
 
-    public static <T> Flow<T> create(Action1<Emitter<T>> onStart) {
+    public static <T> Flow<T> create(Action1<? super Emitter<? super T>> onStart) {
         return FlowCreate.create(onStart);
     }
 

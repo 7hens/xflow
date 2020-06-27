@@ -20,22 +20,22 @@ public class FlowTimeout<T> implements FlowOperator<T, T> {
     }
 
     @Override
-    public Collector<T> apply(Emitter<T> emitter) {
+    public Collector<T> apply(Emitter<? super T> emitter) {
         return new MyCollector(emitter);
     }
 
     private class MyCollector implements Collector<T>, Runnable {
         private final AtomicBoolean isTransferred = new AtomicBoolean(false);
-        private final Emitter<T> emitter;
+        private final Emitter<? super T> emitter;
         private Cancellable cancellable;
 
-        MyCollector(Emitter<T> emitter) {
+        MyCollector(Emitter<? super T> emitter) {
             this.emitter = emitter;
             cancellable = emitter.scheduler().schedule(this, timeout, unit);
         }
 
         @Override
-        public void onCollect(Reply<T> reply) {
+        public void onCollect(Reply<? extends T> reply) {
             if (isTransferred.get()) return;
             emitter.emit(reply);
             if (cancellable != null) {
@@ -52,7 +52,7 @@ public class FlowTimeout<T> implements FlowOperator<T, T> {
             if (isTransferred.compareAndSet(false, true)) {
                 fallback.collect(emitter, new Collector<T>() {
                     @Override
-                    public void onCollect(Reply<T> reply) {
+                    public void onCollect(Reply<? extends T> reply) {
                         emitter.emit(reply);
                     }
                 });

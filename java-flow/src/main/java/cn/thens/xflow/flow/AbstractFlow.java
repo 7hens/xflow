@@ -9,8 +9,8 @@ import cn.thens.xflow.scheduler.Scheduler;
  */
 abstract class AbstractFlow<T> extends Flow<T> {
     @Override
-    protected Cancellable collect(Scheduler scheduler, Collector<T> collector) {
-        CollectorEmitter<T> emitter = CollectorEmitter.create(scheduler, collector);
+    protected Cancellable collect(Scheduler scheduler, Collector<? super T> collector) {
+        CollectorEmitter<? super T> emitter = CollectorEmitter.create(scheduler, collector);
         emitter.scheduler().schedule(new Runnable() {
             @Override
             public void run() {
@@ -24,5 +24,5 @@ abstract class AbstractFlow<T> extends Flow<T> {
         return emitter;
     }
 
-    protected abstract void onStart(CollectorEmitter<T> emitter) throws Throwable;
+    protected abstract void onStart(CollectorEmitter<? super T> emitter) throws Throwable;
 }

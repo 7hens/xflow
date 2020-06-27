@@ -3,7 +3,6 @@ package cn.thens.xflow.flow;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import cn.thens.xflow.func.Func0;
-import cn.thens.xflow.func.Predicate;
 
 /**
  * @author 7hens
@@ -16,7 +15,7 @@ abstract class FlowRepeat<T> extends AbstractFlow<T> {
     }
 
     @Override
-    protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+    protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
         upFlow.collect(emitter, new CollectorHelper<T>() {
             @Override
             protected void onEach(T data) throws Throwable {
@@ -29,19 +28,19 @@ abstract class FlowRepeat<T> extends AbstractFlow<T> {
                 super.onTerminate(error);
                 try {
                     onFlowTerminate(emitter);
-                } catch (Throwable e){
+                } catch (Throwable e) {
                     emitter.error(error);
                 }
             }
         });
     }
 
-    abstract void onFlowTerminate(CollectorEmitter<T> emitter) throws Throwable;
+    abstract void onFlowTerminate(CollectorEmitter<? super T> emitter) throws Throwable;
 
     static <T> FlowRepeat<T> repeat(Flow<T> upFlow) {
         return new FlowRepeat<T>(upFlow) {
             @Override
-            void onFlowTerminate(CollectorEmitter<T> emitter) throws Throwable {
+            void onFlowTerminate(CollectorEmitter<? super T> emitter) throws Throwable {
                 collect(emitter);
             }
         };
@@ -50,7 +49,7 @@ abstract class FlowRepeat<T> extends AbstractFlow<T> {
     static <T> FlowRepeat<T> repeat(Flow<T> upFlow, Func0<Boolean> shouldRepeat) {
         return new FlowRepeat<T>(upFlow) {
             @Override
-            void onFlowTerminate(CollectorEmitter<T> emitter) throws Throwable {
+            void onFlowTerminate(CollectorEmitter<? super T> emitter) throws Throwable {
                 if (shouldRepeat.invoke()) {
                     collect(emitter);
                 }
@@ -58,12 +57,12 @@ abstract class FlowRepeat<T> extends AbstractFlow<T> {
         };
     }
 
-    static <T> FlowRepeat<T > repeat(Flow<T> upFlow, int count) {
+    static <T> FlowRepeat<T> repeat(Flow<T> upFlow, int count) {
         return new FlowRepeat<T>(upFlow) {
             AtomicInteger resetCount = new AtomicInteger(count);
 
             @Override
-            void onFlowTerminate(CollectorEmitter<T> emitter) throws Throwable {
+            void onFlowTerminate(CollectorEmitter<? super T> emitter) throws Throwable {
                 if (resetCount.decrementAndGet() >= 0) {
                     collect(emitter);
                 }

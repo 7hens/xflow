@@ -13,10 +13,10 @@ class FlowToCollection<T, C extends Collection<T>> implements FlowOperator<T, C>
     }
 
     @Override
-    public Collector<T> apply(final Emitter<C> emitter) {
+    public Collector<T> apply(final Emitter<? super C> emitter) {
         return new Collector<T>() {
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 if (reply.isTerminated()) {
                     emitter.data(list);
                     emitter.error(reply.error());

@@ -8,7 +8,7 @@ import cn.thens.xflow.scheduler.Scheduler;
  * @author 7hens
  */
 public interface Emitter<T> {
-    void emit(Reply<T> reply);
+    void emit(Reply<? extends T> reply);
 
     void data(T data);
 

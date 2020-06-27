@@ -101,7 +101,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public static <T> PredicateHelper<T> wrap(final Predicate<T> predicate) {
+    public static <T> PredicateHelper<T> wrap(final Predicate<? super T> predicate) {
         return new PredicateHelper<T>() {
             @Override
             public boolean test(T t) throws Throwable {
@@ -119,7 +119,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public static <T> PredicateHelper<T> eq(@NotNull AtomicReference<T> dataRef) {
+    public static <T> PredicateHelper<T> eq(@NotNull AtomicReference<? extends T> dataRef) {
         return new PredicateHelper<T>() {
             @Override
             public boolean test(T t) throws Throwable {

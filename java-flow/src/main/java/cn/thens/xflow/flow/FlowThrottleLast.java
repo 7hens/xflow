@@ -20,11 +20,11 @@ class FlowThrottleLast<T> implements FlowOperator<T, T> {
     }
 
     @Override
-    public Collector<T> apply(Emitter<T> emitter) {
+    public Collector<T> apply(Emitter<? super T> emitter) {
         return new Collector<T>() {
             @SuppressWarnings("unchecked")
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 if (reply.isTerminated()) {
                     emitter.emit(reply);
                     return;

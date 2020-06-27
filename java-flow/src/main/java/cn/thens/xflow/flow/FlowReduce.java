@@ -18,12 +18,12 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
     }
 
     @Override
-    protected void onStart(CollectorEmitter<R> emitter) {
+    protected void onStart(CollectorEmitter<? super R> emitter) {
         upFlow.collect(emitter, new Collector<T>() {
             private AtomicBoolean hasValue = new AtomicBoolean(false);
 
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 if (reply.isTerminated()) {
                     Throwable error = reply.error();
                     if (error == null) {

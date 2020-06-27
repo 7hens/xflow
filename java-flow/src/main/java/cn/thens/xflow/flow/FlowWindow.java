@@ -8,16 +8,16 @@ import cn.thens.xflow.func.Funcs;
  */
 class FlowWindow<T> extends AbstractPolyFlow<T > {
     private final Flow<T> upFlow;
-    private final Func0<Flow<?>> windowFlowFactory;
-    private Emitter<T> currentEmitter;
+    private final Func0<? extends Flow<?>> windowFlowFactory;
+    private Emitter<? super T> currentEmitter;
 
-    private FlowWindow(Flow<T> upFlow, Func0<Flow<?>> windowFlowFactory) {
+    private FlowWindow(Flow<T> upFlow, Func0<? extends Flow<?>> windowFlowFactory) {
         this.upFlow = upFlow;
         this.windowFlowFactory = windowFlowFactory;
     }
 
     @Override
-    protected void onStart(CollectorEmitter<Flow<T>> emitter) throws Throwable {
+    protected void onStart(CollectorEmitter<? super Flowable<T>> emitter) throws Throwable {
         emitNewFlow(emitter);
         upFlow.collect(emitter, reply -> {
             emitter.scheduler().schedule(new Runnable() {
@@ -32,10 +32,10 @@ class FlowWindow<T> extends AbstractPolyFlow<T > {
     }
 
     @SuppressWarnings("unchecked")
-    private void emitNewFlow(CollectorEmitter<Flow<T>> emitter) throws Throwable {
+    private void emitNewFlow(CollectorEmitter<? super Flow<T>> emitter) throws Throwable {
         emitter.data(new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> innerEmitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super T> innerEmitter) throws Throwable {
                 currentEmitter = innerEmitter;
             }
         });

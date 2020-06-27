@@ -17,7 +17,7 @@ class FlowTakeLast<T> implements FlowOperator<T, T> {
     }
 
     @Override
-    public Collector<T> apply(Emitter<T> emitter) {
+    public Collector<T> apply(Emitter<? super T> emitter) {
         return reply -> {
             if (reply.isTerminated()) {
                 Throwable error = reply.error();

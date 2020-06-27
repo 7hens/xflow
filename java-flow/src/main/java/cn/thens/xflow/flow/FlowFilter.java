@@ -16,10 +16,10 @@ import cn.thens.xflow.func.PredicateHelper;
  */
 abstract class FlowFilter<T> implements FlowOperator<T, T> {
     @Override
-    public Collector<T> apply(final Emitter<T> emitter) {
+    public Collector<T> apply(final Emitter<? super T> emitter) {
         return new Collector<T>() {
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 if (reply.isTerminated()) {
                     onTerminated(emitter, reply.error());
                     return;
@@ -38,7 +38,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
 
     protected abstract boolean test(T data) throws Throwable;
 
-    void onTerminated(Emitter<T> emitter, Throwable error) {
+    void onTerminated(Emitter<? super T> emitter, Throwable error) {
         emitter.error(error);
     }
 
@@ -66,7 +66,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
             }
 
             @Override
-            protected void onTerminated(Emitter<T> emitter, Throwable error) {
+            protected void onTerminated(Emitter<? super T> emitter, Throwable error) {
                 super.onTerminated(emitter, error);
                 collectedKeys.clear();
             }
@@ -92,7 +92,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
             }
 
             @Override
-            protected void onTerminated(Emitter<T> emitter, Throwable error) {
+            protected void onTerminated(Emitter<? super T> emitter, Throwable error) {
                 super.onTerminated(emitter, error);
                 lastKey = null;
             }
@@ -122,7 +122,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
             }
 
             @Override
-            void onTerminated(Emitter<T> emitter, Throwable error) {
+            void onTerminated(Emitter<? super T> emitter, Throwable error) {
                 if (error == null) {
                     if (hasValue.get()) {
                         emitter.data(lastValue);

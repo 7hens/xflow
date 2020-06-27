@@ -17,14 +17,14 @@ class PolyFlowFlatZip<T> extends AbstractFlow<List<T>> {
     }
 
     @Override
-    protected void onStart(CollectorEmitter<List<T>> emitter) throws Throwable {
-        upFlow.collect(emitter, new Collector<Flow<T>>() {
+    protected void onStart(CollectorEmitter<? super List<T>> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flowable<T>>() {
             final Queue<Queue<T>> cachedDataQueue = new LinkedList<>();
             final AtomicBoolean isOuterFlowTerminated = new AtomicBoolean(false);
             final PolyFlowFlatHelper helper = PolyFlowFlatHelper.create(emitter);
 
             @Override
-            public void onCollect(Reply<Flow<T>> reply) {
+            public void onCollect(Reply<? extends Flowable<T>> reply) {
                 if (reply.isComplete()) {
                     isOuterFlowTerminated.set(true);
                     tryZip();
@@ -35,16 +35,16 @@ class PolyFlowFlatZip<T> extends AbstractFlow<List<T>> {
                     return;
                 }
                 if (reply.isTerminated()) return;
-                Flow<T> flow = reply.data();
+                Flowable<T> flow = reply.data();
                 Queue<T> dataQueue = new LinkedList<>();
                 cachedDataQueue.add(dataQueue);
-                flow.collect(emitter, newInnerCollector(dataQueue));
+                flow.asFlow().collect(emitter, newInnerCollector(dataQueue));
             }
 
             private Collector<T> newInnerCollector(Queue<T> dataQueue) {
                 return new Collector<T>() {
                     @Override
-                    public void onCollect(Reply<T> reply) {
+                    public void onCollect(Reply<? extends T> reply) {
                         helper.onInnerCollect(reply);
                         if (emitter.isTerminated()) {
                             cachedDataQueue.clear();

@@ -18,7 +18,7 @@ class FlowDelayStart<T> extends AbstractFlow<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void onStart(CollectorEmitter<T> emitter) {
+    protected void onStart(CollectorEmitter<? super T> emitter) {
         try {
             delayFunc.invoke().collect(emitter, new CollectorHelper() {
                 @Override

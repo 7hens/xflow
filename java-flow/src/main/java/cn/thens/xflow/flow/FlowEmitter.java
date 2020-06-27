@@ -13,14 +13,14 @@ import cn.thens.xflow.scheduler.Schedulers;
  * @author 7hens
  */
 public class FlowEmitter<T> implements Emitter<T> {
-    private List<Emitter<T>> emitters = new CopyOnWriteArrayList<>();
+    private List<Emitter<? super T>> emitters = new CopyOnWriteArrayList<>();
     private CollectorEmitter<T> collectorEmitter = new CollectorEmitter<T>(Schedulers.core()) {
         @Override
         Collector<T> collector() {
             return new Collector<T>() {
                 @Override
-                public void onCollect(Reply<T> reply) {
-                    for (Emitter<T> emitter : emitters) {
+                public void onCollect(Reply<? extends T> reply) {
+                    for (Emitter<? super T> emitter : emitters) {
                         emitter.emit(reply);
                     }
                 }
@@ -29,7 +29,7 @@ public class FlowEmitter<T> implements Emitter<T> {
     };
 
     @Override
-    public void emit(Reply<T> reply) {
+    public void emit(Reply<? extends T> reply) {
         collectorEmitter.emit(reply);
     }
 
@@ -69,7 +69,7 @@ public class FlowEmitter<T> implements Emitter<T> {
     }
 
     public Flow<T> asFlow() {
-        final AtomicReference<Emitter<T>> emitterRef = new AtomicReference<>(null);
+        final AtomicReference<Emitter<? super T>> emitterRef = new AtomicReference<>(null);
         return Flow.<T>create(emitter -> {
             emitterRef.set(emitter);
             emitters.add(emitter);
@@ -78,7 +78,7 @@ public class FlowEmitter<T> implements Emitter<T> {
                     @Override
                     protected void onTerminate(Throwable e) throws Throwable {
                         super.onTerminate(e);
-                        Emitter<T> emitter = emitterRef.get();
+                        Emitter<? super T> emitter = emitterRef.get();
                         if (emitter != null) {
                             emitters.remove(emitter);
                         }

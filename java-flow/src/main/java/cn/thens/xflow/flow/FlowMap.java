@@ -6,17 +6,17 @@ import cn.thens.xflow.func.Func1;
  * @author 7hens
  */
 class FlowMap<T, R> implements FlowOperator<T, R> {
-    private final Func1<T, R> mapper;
+    private final Func1<? super T, ? extends R> mapper;
 
-    FlowMap(Func1<T, R> mapper) {
+    FlowMap(Func1<? super T, ? extends R> mapper) {
         this.mapper = mapper;
     }
 
     @Override
-    public Collector<T> apply(final Emitter<R> emitter) {
+    public Collector<? super T> apply(final Emitter<? super R> emitter) {
         return new Collector<T>() {
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 if (reply.isTerminated()) {
                     emitter.error(reply.error());
                     return;

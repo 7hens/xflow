@@ -9,20 +9,20 @@ import cn.thens.xflow.func.Funcs;
  */
 class FlowDelay<T> extends AbstractFlow<T> {
     private final Flow<T> upFlow;
-    private final Func1<? super Reply<T>, ? extends Flow> delayFunc;
+    private final Func1<? super Reply<? extends T>, ? extends Flow> delayFunc;
 
-    private FlowDelay(Flow<T> upFlow, Func1<? super Reply<T>, ? extends Flow<?>> delayFunc) {
+    private FlowDelay(Flow<T> upFlow, Func1<? super Reply<? extends T>, ? extends Flow<?>> delayFunc) {
         this.upFlow = upFlow;
         this.delayFunc = delayFunc;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void onStart(CollectorEmitter<T> emitter) {
+    protected void onStart(CollectorEmitter<? super T> emitter) {
         try {
             upFlow.collect(emitter, new Collector<T>() {
                 @Override
-                public void onCollect(Reply<T> reply) {
+                public void onCollect(Reply<? extends T> reply) {
                     try {
                         delayFunc.invoke(reply).collect(emitter, new CollectorHelper() {
                             @Override
@@ -42,7 +42,7 @@ class FlowDelay<T> extends AbstractFlow<T> {
         }
     }
 
-    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Func1<? super Reply<T>, ? extends Flow<?>> delayFunc) {
+    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Func1<? super Reply<? extends T>, ? extends Flow<?>> delayFunc) {
         return new FlowDelay<>(upFlow, delayFunc);
     }
 

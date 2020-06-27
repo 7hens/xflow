@@ -15,13 +15,13 @@ class PolyFlowDelayErrors<T> extends AbstractPolyFlow<T> {
     }
 
     @Override
-    protected void onStart(CollectorEmitter<Flow<T>> emitter) throws Throwable {
-        upFlow.collect(emitter, new Collector<Flow<T>>() {
+    protected void onStart(CollectorEmitter<? super Flowable<T>> emitter) throws Throwable {
+        upFlow.collect(emitter, new Collector<Flowable<T>>() {
             final List<Throwable> errors = new ArrayList<>();
             final AtomicInteger restFlowCount = new AtomicInteger(1);
 
             @Override
-            public void onCollect(Reply<Flow<T>> reply) {
+            public void onCollect(Reply<? extends Flowable<T>> reply) {
                 if (reply.isTerminated()) {
                     Throwable error = reply.error();
                     if (error == null) {
@@ -32,7 +32,7 @@ class PolyFlowDelayErrors<T> extends AbstractPolyFlow<T> {
                     return;
                 }
                 restFlowCount.incrementAndGet();
-                emitter.data(reply.data()
+                emitter.data(reply.data().asFlow()
                         .onCollect(new CollectorHelper<T>() {
                             @Override
                             protected void onTerminate(Throwable error) throws Throwable {

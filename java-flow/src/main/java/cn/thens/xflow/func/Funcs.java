@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("WeakerAccess")
 public final class Funcs {
-    public static <T> T call(@NotNull Func0<T> func) {
+    public static <T> T call(@NotNull Func0<? extends T> func) {
         try {
             return func.invoke();
         } catch (Throwable e) {
@@ -16,7 +16,7 @@ public final class Funcs {
         }
     }
 
-    public static <T> T call(@NotNull Func0<T> func, @Nullable T fallback) {
+    public static <T> T call(@NotNull Func0<? extends T> func, @Nullable T fallback) {
         try {
             return call(func);
         } catch (Throwable e) {

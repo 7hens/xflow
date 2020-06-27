@@ -11,10 +11,10 @@ import cn.thens.xflow.func.Func0;
  * @author 7hens
  */
 final class FlowCreate {
-    static <T> Flow<T> create(Action1<Emitter<T>> onStart) {
+    static <T> Flow<T> create(Action1<? super Emitter<? super T>> onStart) {
         return new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
                 onStart.invoke(emitter);
             }
         };
@@ -23,7 +23,7 @@ final class FlowCreate {
     static <T> Flow<T> empty() {
         return new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> emitter) {
+            protected void onStart(CollectorEmitter<? super T> emitter) {
                 emitter.complete();
             }
         };
@@ -32,7 +32,7 @@ final class FlowCreate {
     static <T> Flow<T> never() {
         return new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> emitter) {
+            protected void onStart(CollectorEmitter<? super T> emitter) {
             }
         };
     }
@@ -40,7 +40,7 @@ final class FlowCreate {
     static <T> Flow<T> error(final Throwable e) {
         return new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> emitter) {
+            protected void onStart(CollectorEmitter<? super T> emitter) {
                 emitter.error(e);
             }
         };
@@ -49,7 +49,7 @@ final class FlowCreate {
     static <T> Flow<T> defer(final Func0<Flow<T>> flowFactory) {
         return new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
                 flowFactory.invoke().collect(emitter);
             }
         };
@@ -58,7 +58,7 @@ final class FlowCreate {
     static <T> Flow<T> fromArray(T[] elements) {
         return new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
                 for (T item : elements) {
                     emitter.data(item);
                 }
@@ -70,7 +70,7 @@ final class FlowCreate {
     static <T> Flow<T> fromIterable(Iterable<T> iterable) {
         return new AbstractFlow<T>() {
             @Override
-            protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
                 for (T item : iterable) {
                     emitter.data(item);
                 }
@@ -88,7 +88,7 @@ final class FlowCreate {
         }
         return new AbstractFlow<Integer>() {
             @Override
-            protected void onStart(CollectorEmitter<Integer> emitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super Integer> emitter) throws Throwable {
                 if (end > start) {
                     for (int i = start; i <= end; i += step) {
                         emitter.data(i);
@@ -106,7 +106,7 @@ final class FlowCreate {
     static Flow<Long> timer(long delay, TimeUnit unit) {
         return new AbstractFlow<Long>() {
             @Override
-            protected void onStart(CollectorEmitter<Long> emitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super Long> emitter) throws Throwable {
                 emitter.scheduler().schedule(new Runnable() {
                     @Override
                     public void run() {
@@ -121,7 +121,7 @@ final class FlowCreate {
     static Flow<Long> interval(long initialDelay, long period, TimeUnit unit) {
         return new AbstractFlow<Long>() {
             @Override
-            protected void onStart(CollectorEmitter<Long> emitter) throws Throwable {
+            protected void onStart(CollectorEmitter<? super Long> emitter) throws Throwable {
                 final AtomicLong count = new AtomicLong(0);
                 emitter.scheduler().schedulePeriodically(new Runnable() {
                     @Override

@@ -18,7 +18,7 @@ class FlowOnBackpressure<T> extends Flow<T> {
     }
 
     @Override
-    protected Cancellable collect(Scheduler scheduler, Collector<T> collector) {
+    protected Cancellable collect(Scheduler scheduler, Collector<? super T> collector) {
         CollectorEmitter<T> emitter = newDownEmitter(scheduler, collector);
         emitter.scheduler().schedule(new Runnable() {
             @Override
@@ -36,7 +36,7 @@ class FlowOnBackpressure<T> extends Flow<T> {
     private void onStart(CollectorEmitter<T> emitter) throws Throwable {
         upFlow.collect(emitter, new Collector<T>() {
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 if (emitter.isTerminated()) return;
                 if (reply.isTerminated()) {
                     emitter.emit(reply);
@@ -56,13 +56,13 @@ class FlowOnBackpressure<T> extends Flow<T> {
         });
     }
 
-    private CollectorEmitter<T> newDownEmitter(Scheduler scheduler, Collector<T> collector) {
+    private CollectorEmitter<T> newDownEmitter(Scheduler scheduler, Collector<? super T> collector) {
         return new CollectorEmitter<T>(scheduler) {
             @Override
             Collector<T> collector() {
                 return new Collector<T>() {
                     @Override
-                    public void onCollect(Reply<T> reply) {
+                    public void onCollect(Reply<? extends T> reply) {
                         collector.onCollect(reply);
                         if (reply.isTerminated()) {
                             queue.clear();

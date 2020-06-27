@@ -16,7 +16,7 @@ public class PolyFlowTest {
                 .take(3)
                 .onCollect(TestX.collector("A"))
                 .flowOn(TestX.scheduler("a"))
-                .polyMap(it -> Flow.interval(1, TimeUnit.SECONDS)
+                .mapToFlow(it -> Flow.interval(1, TimeUnit.SECONDS)
                         .take(5)
                         .map(t -> {
                             if (t == 4) throw new RuntimeException();

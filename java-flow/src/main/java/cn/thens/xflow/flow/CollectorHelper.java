@@ -12,7 +12,7 @@ import cn.thens.xflow.func.Action1;
  */
 public abstract class CollectorHelper<T> implements Collector<T> {
     @Override
-    public void onCollect(Reply<T> reply) {
+    public void onCollect(Reply<? extends T> reply) {
         try {
             if (!reply.isTerminated()) {
                 onEach(reply.data());
@@ -114,7 +114,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
     public static <T> CollectorHelper<T> from(final Emitter<T> emitter) {
         return new CollectorHelper<T>() {
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 super.onCollect(reply);
                 emitter.emit(reply);
             }
@@ -127,7 +127,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
         }
         return new CollectorHelper<T>() {
             @Override
-            public void onCollect(Reply<T> reply) {
+            public void onCollect(Reply<? extends T> reply) {
                 super.onCollect(reply);
                 collector.onCollect(reply);
             }
@@ -156,7 +156,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
         }
 
         @Override
-        public void onCollect(Reply<T> reply) {
+        public void onCollect(Reply<? extends T> reply) {
             super.onCollect(reply);
             collector.onCollect(reply);
         }

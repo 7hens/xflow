@@ -163,7 +163,7 @@ public class FlowTest {
         AtomicLong count = new AtomicLong(0);
         final long startTime = System.currentTimeMillis();
         Flow.just(1, 1, 3)
-                .polyMap(it -> Flow.timer(it, TimeUnit.SECONDS))
+                .mapToFlow(it -> Flow.timer(it, TimeUnit.SECONDS))
                 .flatConcat()
                 .repeat()
                 .map(it -> {

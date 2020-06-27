@@ -14,7 +14,7 @@ class FlowAutoCancel<T> extends AbstractFlow<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void onStart(CollectorEmitter<T> emitter) throws Throwable {
+    protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
         upFlow.collect(emitter);
         cancelFlow.collect(emitter, new CollectorHelper() {
             @Override

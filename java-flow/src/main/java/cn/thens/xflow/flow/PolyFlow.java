@@ -4,8 +4,8 @@ import java.util.List;
 
 import cn.thens.xflow.func.Func1;
 
-public abstract class PolyFlow<T> extends Flow<Flow<T>> {
-    public <R> R polyTo(Func1<? super PolyFlow<T>, R> converter) {
+public abstract class PolyFlow<T> extends Flow<Flowable<T>> {
+    public <R> R polyTo(Func1<? super PolyFlow<T>, ? extends R> converter) {
         try {
             return converter.invoke(this);
         } catch (Throwable e) {
@@ -31,5 +31,9 @@ public abstract class PolyFlow<T> extends Flow<Flow<T>> {
 
     public Flow<List<T>> flatZip() {
         return new PolyFlowFlatZip<>(this);
+    }
+
+    public Flow<List<T>> flatToList() {
+        return flatMap(it -> it.asFlow().toList());
     }
 }

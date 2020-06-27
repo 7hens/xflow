@@ -15,7 +15,7 @@ import cn.thens.xflow.scheduler.Scheduler;
 abstract class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Collector<T>, Runnable {
     private final AtomicBoolean isCollecting = new AtomicBoolean(false);
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);
-    private final Queue<Reply<T>> replyQueue = new LinkedList<>();
+    private final Queue<Reply<? extends T>> replyQueue = new LinkedList<>();
     private final CancellableScheduler scheduler;
 
     CollectorEmitter(Scheduler scheduler) {
@@ -25,12 +25,12 @@ abstract class CollectorEmitter<T> extends CompositeCancellable implements Emitt
     abstract Collector<T> collector();
 
     @Override
-    public void emit(Reply<T> reply) {
+    public void emit(Reply<? extends T> reply) {
         onCollect(reply);
     }
 
     @Override
-    public void onCollect(Reply<T> reply) {
+    public void onCollect(Reply<? extends T> reply) {
         if (isTerminated.get()) {
             return;
         }
@@ -53,7 +53,7 @@ abstract class CollectorEmitter<T> extends CompositeCancellable implements Emitt
         isCollecting.set(true);
         try {
             while (!isCancelled() && !replyQueue.isEmpty()) {
-                Reply<T> reply = replyQueue.poll();
+                Reply<? extends T> reply = replyQueue.poll();
                 collector().onCollect(reply);
                 if (reply.isTerminated()) {
                     super.cancel();
