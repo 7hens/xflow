@@ -6,8 +6,8 @@
 ## Setting up Dependencies
 
 ```groovy
-implementation 'com.github.7hens.xflow:java-flow:0.2'
-implementation 'com.github.7hens.xflow:android-flow:0.2'
+implementation 'com.github.7hens.xflow:java-flow:0.3'
+implementation 'com.github.7hens.xflow:android-flow:0.3'
 ```
 
 ## Sample Usages
