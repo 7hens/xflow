@@ -15,7 +15,7 @@ implementation 'com.github.7hens.xflow:android-flow:0.2'
 ```java
 Flow.just(1, 2, 3, 4, 5)
         .take(3)
-        .polyMap(it -> Flow.just(it + 10, it + 20))
+        .mapToFlow(it -> Flow.just(it + 10, it + 20))
         .delayErrors()
         .flatMerge()
         .onCollect(new CollectorHelper<Integer>() {
