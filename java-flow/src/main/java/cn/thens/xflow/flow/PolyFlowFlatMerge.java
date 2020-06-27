@@ -19,8 +19,11 @@ class PolyFlowFlatMerge<T> extends AbstractFlow<T> {
             public void onCollect(Reply<? extends Flowable<T>> reply) {
                 helper.onOuterCollect(reply);
                 if (reply.isTerminated()) return;
-                Flowable<T> flowable = reply.data();
-                flowable.asFlow().collect(emitter, innerCollector);
+                try {
+                    reply.data().asFlow().collect(emitter, innerCollector);
+                } catch (Throwable e) {
+                    emitter.error(e);
+                }
             }
 
             private final Collector<T> innerCollector = new Collector<T>() {

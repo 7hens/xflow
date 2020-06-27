@@ -5,9 +5,9 @@ package cn.thens.xflow.flow;
  */
 class FlowOnCollect<T> extends AbstractFlow<T> {
     private final Flow<T> upFlow;
-    private final Collector<T> collector;
+    private final Collector<? super T> collector;
 
-    FlowOnCollect(Flow<T> upFlow, Collector<T> collector) {
+    FlowOnCollect(Flow<T> upFlow, Collector<? super T> collector) {
         this.upFlow = upFlow;
         this.collector = collector;
     }
@@ -16,7 +16,7 @@ class FlowOnCollect<T> extends AbstractFlow<T> {
     protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
         if (collector instanceof CollectorHelper) {
             try {
-                ((CollectorHelper<T>) collector).onStart(emitter);
+                ((CollectorHelper) collector).onStart(emitter);
             } catch (Throwable e) {
                 emitter.error(e);
             }

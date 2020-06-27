@@ -8,9 +8,9 @@ import cn.thens.xflow.scheduler.Scheduler;
  */
 class FlowTransform<T, R> extends Flow<R> {
     private final Flow<T> upFlow;
-    private final FlowOperator<T, R> operator;
+    private final FlowOperator<? super T, ? extends R> operator;
 
-    FlowTransform(Flow<T> upFlow, FlowOperator<T, R> operator) {
+    FlowTransform(Flow<T> upFlow, FlowOperator<? super T, ? extends R> operator) {
         this.upFlow = upFlow;
         this.operator = operator;
     }

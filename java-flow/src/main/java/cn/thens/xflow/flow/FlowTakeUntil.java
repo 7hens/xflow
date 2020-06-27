@@ -31,7 +31,7 @@ abstract class FlowTakeUntil<T> implements FlowOperator<T, T> {
 
     protected abstract boolean test(T data) throws Throwable;
 
-    static <T> FlowTakeUntil<T> takeUntil(Predicate<T> predicate) {
+    static <T> FlowTakeUntil<T> takeUntil(Predicate<? super T> predicate) {
         return new FlowTakeUntil<T>() {
             @Override
             protected boolean test(T data) throws Throwable {

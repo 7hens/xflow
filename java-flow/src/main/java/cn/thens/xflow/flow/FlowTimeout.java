@@ -8,12 +8,12 @@ import cn.thens.xflow.cancellable.Cancellable;
 /**
  * @author 7hens
  */
-public class FlowTimeout<T> implements FlowOperator<T, T> {
+class FlowTimeout<T> implements FlowOperator<T, T> {
     private final long timeout;
     private final TimeUnit unit;
-    private final Flow<T> fallback;
+    private final Flowable<T> fallback;
 
-    FlowTimeout(long timeout, TimeUnit unit, Flow<T> fallback) {
+    FlowTimeout(long timeout, TimeUnit unit, Flowable<T> fallback) {
         this.timeout = timeout;
         this.unit = unit;
         this.fallback = fallback;
@@ -50,12 +50,16 @@ public class FlowTimeout<T> implements FlowOperator<T, T> {
         @Override
         public void run() {
             if (isTransferred.compareAndSet(false, true)) {
-                fallback.collect(emitter, new Collector<T>() {
-                    @Override
-                    public void onCollect(Reply<? extends T> reply) {
-                        emitter.emit(reply);
-                    }
-                });
+                try {
+                    fallback.asFlow().collect(emitter, new Collector<T>() {
+                        @Override
+                        public void onCollect(Reply<? extends T> reply) {
+                            emitter.emit(reply);
+                        }
+                    });
+                } catch (Throwable e) {
+                    emitter.error(e);
+                }
             }
         }
     }

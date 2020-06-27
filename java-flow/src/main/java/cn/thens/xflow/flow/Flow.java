@@ -46,7 +46,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return new FlowFlowOn<>(this, upScheduler);
     }
 
-    public <R> R to(Func1<? super Flow<T>, ? extends  R> converter) {
+    public <R> R to(Func1<? super Flow<T>, ? extends R> converter) {
         try {
             return converter.invoke(this);
         } catch (Throwable e) {
@@ -54,17 +54,17 @@ public abstract class Flow<T> implements Flowable<T> {
         }
     }
 
-    public <R> Flow<R> transform(FlowOperator<T, R> operator) {
+    public <R> Flow<R> transform(FlowOperator<? super T, ? extends R> operator) {
         return new FlowTransform<>(this, operator);
     }
 
-    public Flow<T> onCollect(Collector<T> collector) {
+    public Flow<T> onCollect(Collector<? super T> collector) {
         return new FlowOnCollect<>(this, collector);
     }
 
     @SafeVarargs
-    public final PolyFlow<T> polyWith(Flow<T>... flows) {
-        ArrayList<Flow<T>> flowList = new ArrayList<>();
+    public final PolyFlow<T> polyWith(Flowable<T>... flows) {
+        ArrayList<Flowable<T>> flowList = new ArrayList<>();
         flowList.add(this);
         flowList.addAll(Arrays.asList(flows));
         return from(flowList).to(FlowX.poly());
@@ -95,7 +95,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return toCollection(new ArrayList<>());
     }
 
-    public Flow<T> filter(Predicate<T> predicate) {
+    public Flow<T> filter(Predicate<? super T> predicate) {
         return transform(FlowFilter.filter(predicate));
     }
 
@@ -103,7 +103,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.ignoreElements());
     }
 
-    public <K> Flow<T> distinct(Func1<T, K> keySelector) {
+    public <K> Flow<T> distinct(Func1<? super T, ? extends K> keySelector) {
         return transform(FlowFilter.distinct(keySelector));
     }
 
@@ -111,7 +111,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.distinct());
     }
 
-    public <K> Flow<T> distinctUntilChanged(Func1<T, K> keySelector) {
+    public <K> Flow<T> distinctUntilChanged(Func1<? super T, ? extends K> keySelector) {
         return transform(FlowFilter.distinctUntilChanged(keySelector));
     }
 
@@ -123,19 +123,19 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.skip(count));
     }
 
-    public Flow<T> throttleFirst(Func1<T, Flow<?>> flowFactory) {
+    public Flow<T> throttleFirst(Func1<? super T, ? extends Flowable<?>> flowFactory) {
         return transform(FlowThrottleFirst.throttleFirst(flowFactory));
     }
 
-    public Flow<T> throttleFirst(Flow<?> flow) {
+    public Flow<T> throttleFirst(Flowable<?> flow) {
         return transform(FlowThrottleFirst.throttleFirst(flow));
     }
 
-    public Flow<T> throttleLast(Func1<T, Flow<?>> flowFactory) {
+    public Flow<T> throttleLast(Func1<? super T, ? extends Flowable<?>> flowFactory) {
         return transform(FlowThrottleLast.throttleLast(flowFactory));
     }
 
-    public Flow<T> throttleLast(Flow<?> flow) {
+    public Flow<T> throttleLast(Flowable<?> flow) {
         return transform(FlowThrottleLast.throttleLast(flow));
     }
 
@@ -147,11 +147,11 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(new FlowTakeLast<>(count));
     }
 
-    public Flow<T> takeWhile(Predicate<T> predicate) {
+    public Flow<T> takeWhile(Predicate<? super T> predicate) {
         return transform(FlowTakeWhile.takeWhile(predicate));
     }
 
-    public Flow<T> takeUntil(Predicate<T> predicate) {
+    public Flow<T> takeUntil(Predicate<? super T> predicate) {
         return transform(FlowTakeUntil.takeUntil(predicate));
     }
 
@@ -163,7 +163,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowElementAt.first());
     }
 
-    public Flow<T> first(Predicate<T> predicate) {
+    public Flow<T> first(Predicate<? super T> predicate) {
         return transform(FlowElementAt.first(predicate));
     }
 
@@ -175,7 +175,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.last());
     }
 
-    public Flow<T> last(Predicate<T> predicate) {
+    public Flow<T> last(Predicate<? super T> predicate) {
         return transform(FlowFilter.last(predicate));
     }
 
@@ -187,19 +187,19 @@ public abstract class Flow<T> implements Flowable<T> {
         return FlowRepeat.repeat(this, count);
     }
 
-    public Flow<T> repeat(Func0<Boolean> shouldRepeat) {
+    public Flow<T> repeat(Func0<? extends Boolean> shouldRepeat) {
         return FlowRepeat.repeat(this, shouldRepeat);
     }
 
-    public <R> Flow<R> reduce(R initialValue, Func2<R, ? super T, R> accumulator) {
+    public <R> Flow<R> reduce(R initialValue, Func2<? super R, ? super T, ? extends R> accumulator) {
         return FlowReduce.reduce(this, initialValue, accumulator);
     }
 
-    public Flow<T> reduce(Func2<T, ? super T, T> accumulator) {
+    public Flow<T> reduce(Func2<? super T, ? super T, ? extends T> accumulator) {
         return FlowReduce.reduce(this, accumulator);
     }
 
-    public Flow<T> timeout(long timeout, TimeUnit unit, Flow<T> fallback) {
+    public Flow<T> timeout(long timeout, TimeUnit unit, Flowable<T> fallback) {
         return transform(new FlowTimeout<>(timeout, unit, fallback));
     }
 
@@ -207,31 +207,27 @@ public abstract class Flow<T> implements Flowable<T> {
         return timeout(timeout, unit, Flow.error(new TimeoutException()));
     }
 
-    public Flow<T> delay(Func1<? super Reply<? extends T>, ? extends Flow<?>> delayFunc) {
+    public Flow<T> delay(Func1<? super Reply<? extends T>, ? extends Flowable<?>> delayFunc) {
         return FlowDelay.delay(this, delayFunc);
     }
 
-    public Flow<T> delay(Flow<?> delayFlow) {
+    public Flow<T> delay(Flowable<?> delayFlow) {
         return FlowDelay.delay(this, delayFlow);
     }
 
-    public Flow<T> delayStart(Func0<? extends Flow<?>> delayFunc) {
-        return FlowDelayStart.delayStart(this, delayFunc);
-    }
-
-    public Flow<T> delayStart(Flow<?> delayFlow) {
+    public Flow<T> delayStart(Flowable<?> delayFlow) {
         return FlowDelayStart.delayStart(this, delayFlow);
     }
 
-    public Flow<T> autoCancel(Flow<?> cancelFlow) {
+    public Flow<T> autoCancel(Flowable<?> cancelFlow) {
         return new FlowAutoCancel<>(this, cancelFlow);
     }
 
-    public Flow<T> catchError(Func1<Throwable, Flow<T>> resumeFunc) {
+    public Flow<T> catchError(Func1<? super Throwable, ? extends Flowable<T>> resumeFunc) {
         return FlowCatch.catchError(this, resumeFunc);
     }
 
-    public Flow<T> catchError(Flow<T> resumeFlow) {
+    public Flow<T> catchError(Flowable<T> resumeFlow) {
         return FlowCatch.catchError(this, resumeFlow);
     }
 
@@ -243,19 +239,15 @@ public abstract class Flow<T> implements Flowable<T> {
         return FlowCatch.retry(this, count);
     }
 
-    public Flow<T> retry(Predicate<Throwable> predicate) {
+    public Flow<T> retry(Predicate<? super Throwable> predicate) {
         return FlowCatch.retry(this, predicate);
     }
 
-    public PolyFlow<T> window(Func0<Flow<?>> windowFlowFactory) {
-        return FlowWindow.window(this, windowFlowFactory);
-    }
-
-    public PolyFlow<T> window(Flow<?> windowFlow) {
+    public PolyFlow<T> window(Flowable<?> windowFlow) {
         return FlowWindow.window(this, windowFlow);
     }
 
-    public PolyFlow<T> window(Predicate<T> shouldClose) {
+    public PolyFlow<T> window(Predicate<? super T> shouldClose) {
         return FlowWindowFilter.window(this, shouldClose);
     }
 
@@ -263,7 +255,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return FlowWindowFilter.window(this, count);
     }
 
-    public Flow<List<T>> buffer(Flow<?> windowFlow) {
+    public Flow<List<T>> buffer(Flowable<?> windowFlow) {
         return window(windowFlow).flatToList();
     }
 
@@ -279,7 +271,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return FlowCreate.create(onStart);
     }
 
-    public static <T> Flow<T> defer(Func0<Flow<T>> flowFactory) {
+    public static <T> Flow<T> defer(Flowable<T> flowFactory) {
         return FlowCreate.defer(flowFactory);
     }
 

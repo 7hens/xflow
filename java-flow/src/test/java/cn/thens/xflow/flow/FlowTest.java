@@ -167,7 +167,7 @@ public class FlowTest {
                 .flatConcat()
                 .repeat()
                 .map(it -> {
-                    long elapsedSeconds =  (System.currentTimeMillis() - startTime) / 1000;
+                    long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
                     return count.incrementAndGet() + " " + elapsedSeconds + "s";
                 })
                 .onCollect(TestX.collector("A"))

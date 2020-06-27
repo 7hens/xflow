@@ -46,7 +46,7 @@ abstract class FlowRepeat<T> extends AbstractFlow<T> {
         };
     }
 
-    static <T> FlowRepeat<T> repeat(Flow<T> upFlow, Func0<Boolean> shouldRepeat) {
+    static <T> FlowRepeat<T> repeat(Flow<T> upFlow, Func0<? extends Boolean> shouldRepeat) {
         return new FlowRepeat<T>(upFlow) {
             @Override
             void onFlowTerminate(CollectorEmitter<? super T> emitter) throws Throwable {

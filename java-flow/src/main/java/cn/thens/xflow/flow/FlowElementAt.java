@@ -30,7 +30,7 @@ abstract class FlowElementAt<T> implements FlowOperator<T, T> {
 
     abstract boolean test(T data) throws Throwable;
 
-    static <T> FlowElementAt<T> first(final Predicate<T> predicate) {
+    static <T> FlowElementAt<T> first(final Predicate<? super T> predicate) {
         return new FlowElementAt<T>() {
             @Override
             boolean test(T data) throws Throwable {

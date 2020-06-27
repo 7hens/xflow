@@ -12,10 +12,10 @@ import cn.thens.xflow.func.Funcs;
  * @author 7hens
  */
 class FlowThrottleLast<T> implements FlowOperator<T, T> {
-    private final Func1<T, Flow<?>> flowFactory;
+    private final Func1<? super T, ? extends Flowable<?>> flowFactory;
     private Cancellable lastFlow = CompositeCancellable.cancelled();
 
-    private FlowThrottleLast(Func1<T, Flow<?>> flowFactory) {
+    private FlowThrottleLast(Func1<? super T, ? extends Flowable<?>> flowFactory) {
         this.flowFactory = flowFactory;
     }
 
@@ -31,15 +31,17 @@ class FlowThrottleLast<T> implements FlowOperator<T, T> {
                 }
                 try {
                     lastFlow.cancel();
-                    lastFlow = flowFactory.invoke(reply.data()).collect(emitter, new CollectorHelper() {
-                        @Override
-                        protected void onTerminate(Throwable error) throws Throwable {
-                            super.onTerminate(error);
-                            if (!(error instanceof CancellationException)) {
-                                emitter.emit(reply);
-                            }
-                        }
-                    });
+                    lastFlow = flowFactory.invoke(reply.data())
+                            .asFlow()
+                            .collect(emitter, new CollectorHelper() {
+                                @Override
+                                protected void onTerminate(Throwable error) throws Throwable {
+                                    super.onTerminate(error);
+                                    if (!(error instanceof CancellationException)) {
+                                        emitter.emit(reply);
+                                    }
+                                }
+                            });
                 } catch (Throwable e) {
                     emitter.error(e);
                 }
@@ -47,11 +49,11 @@ class FlowThrottleLast<T> implements FlowOperator<T, T> {
         };
     }
 
-    static <T> FlowOperator<T, T> throttleLast(Func1<T, Flow<?>> flowFactory) {
+    static <T> FlowOperator<T, T> throttleLast(Func1<? super T, ? extends Flowable<?>> flowFactory) {
         return new FlowThrottleLast<T>(flowFactory);
     }
 
-    static <T> FlowOperator<T, T> throttleLast(Flow<?> flow) {
+    static <T> FlowOperator<T, T> throttleLast(Flowable<?> flow) {
         return new FlowThrottleLast<T>(Funcs.always(flow));
     }
 }

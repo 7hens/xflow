@@ -5,9 +5,9 @@ package cn.thens.xflow.flow;
  */
 class FlowAutoCancel<T> extends AbstractFlow<T> {
     private final Flow<T> upFlow;
-    private final Flow<?> cancelFlow;
+    private final Flowable<?> cancelFlow;
 
-    FlowAutoCancel(Flow<T> upFlow, Flow<?> cancelFlow) {
+    FlowAutoCancel(Flow<T> upFlow, Flowable<?> cancelFlow) {
         this.upFlow = upFlow;
         this.cancelFlow = cancelFlow;
     }
@@ -16,7 +16,7 @@ class FlowAutoCancel<T> extends AbstractFlow<T> {
     @Override
     protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
         upFlow.collect(emitter);
-        cancelFlow.collect(emitter, new CollectorHelper() {
+        cancelFlow.asFlow().collect(emitter, new CollectorHelper() {
             @Override
             protected void onTerminate(Throwable error) throws Throwable {
                 emitter.cancel();

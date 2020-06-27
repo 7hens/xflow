@@ -29,7 +29,11 @@ class PolyFlowFlatSwitch<T> extends AbstractFlow<T> {
                     cancellable.cancel();
                 }
                 Flowable<T> flow = reply.data();
-                lastCancellable.set(flow.asFlow().collect(emitter, innerCollector));
+                try {
+                    lastCancellable.set(flow.asFlow().collect(emitter, innerCollector));
+                } catch (Throwable e) {
+                    emitter.error(e);
+                }
             }
 
             private final Collector<T> innerCollector = new Collector<T>() {

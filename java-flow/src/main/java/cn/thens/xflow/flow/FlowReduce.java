@@ -48,8 +48,15 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
 
     abstract void accumulate(T data) throws Throwable;
 
-    static <T, R> FlowReduce<T, R> reduce(Flow<T> upFlow, R initialValue, Func2<R, ? super T, R> accumulator) {
+    static <T, R> FlowReduce<T, R>
+    reduce(Flow<T> upFlow, R initialValue, Func2<? super R, ? super T, ? extends R> accumulator) {
         return new FlowReduce<T, R>(upFlow) {
+            @Override
+            protected void onStart(CollectorEmitter<? super R> emitter) {
+                value.set(initialValue);
+                super.onStart(emitter);
+            }
+
             @Override
             void accumulate(T data) throws Throwable {
                 value.set(accumulator.invoke(value.get(), data));
@@ -57,7 +64,8 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
         };
     }
 
-    static <T> FlowReduce<T, T> reduce(Flow<T> upFlow, Func2<T, ? super T, T> accumulator) {
+    static <T> FlowReduce<T, T>
+    reduce(Flow<T> upFlow, Func2<? super T, ? super T, ? extends T> accumulator) {
         return new FlowReduce<T, T>(upFlow) {
             private AtomicBoolean hasValue = new AtomicBoolean(false);
 

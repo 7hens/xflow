@@ -1,19 +1,16 @@
 package cn.thens.xflow.flow;
 
-import cn.thens.xflow.func.Func0;
-import cn.thens.xflow.func.Funcs;
-
 /**
  * @author 7hens
  */
-class FlowWindow<T> extends AbstractPolyFlow<T > {
+class FlowWindow<T> extends AbstractPolyFlow<T> {
     private final Flow<T> upFlow;
-    private final Func0<? extends Flow<?>> windowFlowFactory;
+    private final Flowable<?> windowFlowable;
     private Emitter<? super T> currentEmitter;
 
-    private FlowWindow(Flow<T> upFlow, Func0<? extends Flow<?>> windowFlowFactory) {
+    private FlowWindow(Flow<T> upFlow, Flowable<?> windowFlowable) {
         this.upFlow = upFlow;
-        this.windowFlowFactory = windowFlowFactory;
+        this.windowFlowable = windowFlowable;
     }
 
     @Override
@@ -39,7 +36,7 @@ class FlowWindow<T> extends AbstractPolyFlow<T > {
                 currentEmitter = innerEmitter;
             }
         });
-        windowFlowFactory.invoke().collect(emitter, new CollectorHelper() {
+        windowFlowable.asFlow().collect(emitter, new CollectorHelper() {
             @Override
             protected void onTerminate(Throwable error) throws Throwable {
                 if (currentEmitter != null) {
@@ -50,11 +47,7 @@ class FlowWindow<T> extends AbstractPolyFlow<T > {
         });
     }
 
-    static <T> FlowWindow<T> window(Flow<T> upFlow, Func0<Flow<?>> windowFlowFactory) {
-        return new FlowWindow<>(upFlow, windowFlowFactory);
-    }
-
-    static <T> FlowWindow<T> window(Flow<T> upFlow, Flow<?> windowFlow) {
-        return new FlowWindow<>(upFlow, Funcs.always(windowFlow));
+    static <T> FlowWindow<T> window(Flow<T> upFlow, Flowable<?> windowFlowable) {
+        return new FlowWindow<>(upFlow, windowFlowable);
     }
 }

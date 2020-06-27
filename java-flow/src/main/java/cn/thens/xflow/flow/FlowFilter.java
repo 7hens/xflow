@@ -42,7 +42,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
         emitter.error(error);
     }
 
-    static <T> FlowFilter<T> filter(Predicate<T> predicate) {
+    static <T> FlowFilter<T> filter(Predicate<? super T> predicate) {
         return new FlowFilter<T>() {
             @Override
             protected boolean test(T data) throws Throwable {
@@ -51,7 +51,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
         };
     }
 
-    static <T, K> FlowFilter<T> distinct(final Func1<T, K> keySelector) {
+    static <T, K> FlowFilter<T> distinct(final Func1<? super T, ? extends K> keySelector) {
         return new FlowFilter<T>() {
             private Set<K> collectedKeys = new HashSet<>();
 
@@ -77,7 +77,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
         return distinct(Funcs.self());
     }
 
-    static <T, K> FlowFilter<T> distinctUntilChanged(final Func1<T, K> keySelector) {
+    static <T, K> FlowFilter<T> distinctUntilChanged(final Func1<? super T, ? extends K> keySelector) {
         return new FlowFilter<T>() {
             private K lastKey = null;
 
@@ -107,7 +107,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
         return FlowFilter.filter(PredicateHelper.skip(count));
     }
 
-    static <T> FlowFilter<T> last(Predicate<T> predicate) {
+    static <T> FlowFilter<T> last(Predicate<? super T> predicate) {
         return new FlowFilter<T>() {
             AtomicBoolean hasValue = new AtomicBoolean(false);
             T lastValue;

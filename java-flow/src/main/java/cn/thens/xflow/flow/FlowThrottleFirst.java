@@ -13,11 +13,11 @@ import cn.thens.xflow.func.Funcs;
  * @author 7hens
  */
 class FlowThrottleFirst<T> implements FlowOperator<T, T> {
-    private final Func1<T, Flow<?>> flowFactory;
+    private final Func1<? super T, ? extends Flowable<?>> flowFactory;
     private final AtomicBoolean couldEmit = new AtomicBoolean(true);
     private Cancellable lastFlow = CompositeCancellable.cancelled();
 
-    private FlowThrottleFirst(Func1<T, Flow<?>> flowFactory) {
+    private FlowThrottleFirst(Func1<? super T, ? extends Flowable<?>> flowFactory) {
         this.flowFactory = flowFactory;
     }
 
@@ -33,15 +33,16 @@ class FlowThrottleFirst<T> implements FlowOperator<T, T> {
                 }
                 try {
                     lastFlow.cancel();
-                    lastFlow = flowFactory.invoke(reply.data()).collect(emitter, new CollectorHelper() {
-                        @Override
-                        protected void onTerminate(Throwable error) throws Throwable {
-                            super.onTerminate(error);
-                            if (!(error instanceof CancellationException)) {
-                                couldEmit.set(true);
-                            }
-                        }
-                    });
+                    lastFlow = flowFactory.invoke(reply.data()).asFlow()
+                            .collect(emitter, new CollectorHelper() {
+                                @Override
+                                protected void onTerminate(Throwable error) throws Throwable {
+                                    super.onTerminate(error);
+                                    if (!(error instanceof CancellationException)) {
+                                        couldEmit.set(true);
+                                    }
+                                }
+                            });
                     if (couldEmit.compareAndSet(true, false)) {
                         emitter.emit(reply);
                     }
@@ -52,11 +53,11 @@ class FlowThrottleFirst<T> implements FlowOperator<T, T> {
         };
     }
 
-    static <T> FlowOperator<T, T> throttleFirst(Func1<T, Flow<?>> flowFactory) {
+    static <T> FlowOperator<T, T> throttleFirst(Func1<? super T, ? extends Flowable<?>> flowFactory) {
         return new FlowThrottleFirst<>(flowFactory);
     }
 
-    static <T> FlowOperator<T, T> throttleFirst(Flow<?> flow) {
+    static <T> FlowOperator<T, T> throttleFirst(Flowable<?> flow) {
         return new FlowThrottleFirst<>(Funcs.always(flow));
     }
 }

@@ -46,11 +46,11 @@ final class FlowCreate {
         };
     }
 
-    static <T> Flow<T> defer(final Func0<Flow<T>> flowFactory) {
+    static <T> Flow<T> defer(final Flowable<T> flowFactory) {
         return new AbstractFlow<T>() {
             @Override
             protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
-                flowFactory.invoke().collect(emitter);
+                flowFactory.asFlow().collect(emitter);
             }
         };
     }

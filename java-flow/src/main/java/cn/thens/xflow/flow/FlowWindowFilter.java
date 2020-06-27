@@ -57,7 +57,7 @@ abstract class FlowWindowFilter<T> extends AbstractPolyFlow<T> {
         }
     }
 
-    static <T> FlowWindowFilter<T> window(Flow<T> upFlow, Predicate<T> shouldClose) {
+    static <T> FlowWindowFilter<T> window(Flow<T> upFlow, Predicate<? super T> shouldClose) {
         return new FlowWindowFilter<T>(upFlow) {
             @Override
             boolean shouldClose(T data) throws Throwable {

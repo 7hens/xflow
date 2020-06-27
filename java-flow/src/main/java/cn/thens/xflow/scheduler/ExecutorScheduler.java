@@ -22,7 +22,7 @@ class ExecutorScheduler extends Scheduler {
 
     private final Executor executor;
 
-    public ExecutorScheduler(Executor executor) {
+    ExecutorScheduler(Executor executor) {
         this.executor = executor;
     }
 

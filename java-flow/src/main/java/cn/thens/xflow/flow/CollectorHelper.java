@@ -51,7 +51,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
     protected void onCancel() throws Throwable {
     }
 
-    public final CollectorHelper<T> onStart(Action1<Cancellable> action) {
+    public final CollectorHelper<T> onStart(Action1<? super Cancellable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onStart(Cancellable cancellable) throws Throwable {
@@ -61,7 +61,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public final CollectorHelper<T> onEach(Action1<T> action) {
+    public final CollectorHelper<T> onEach(Action1<? super T> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onEach(T data) throws Throwable {
@@ -71,7 +71,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public final CollectorHelper<T> onTerminate(final Action1<Throwable> action) {
+    public final CollectorHelper<T> onTerminate(final Action1<? super Throwable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onTerminate(Throwable error) throws Throwable {
@@ -91,7 +91,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public final CollectorHelper<T> onError(Action1<Throwable> action) {
+    public final CollectorHelper<T> onError(Action1<? super Throwable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onError(Throwable error) throws Throwable {
@@ -111,7 +111,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public static <T> CollectorHelper<T> from(final Emitter<T> emitter) {
+    public static <T> CollectorHelper<T> from(final Emitter<? super T> emitter) {
         return new CollectorHelper<T>() {
             @Override
             public void onCollect(Reply<? extends T> reply) {
@@ -121,9 +121,10 @@ public abstract class CollectorHelper<T> implements Collector<T> {
         };
     }
 
-    public static <T> CollectorHelper<T> wrap(final Collector<T> collector) {
+    @SuppressWarnings("unchecked")
+    public static <T> CollectorHelper<T> wrap(final Collector<? super T> collector) {
         if (collector instanceof CollectorHelper) {
-            return (CollectorHelper<T>) collector;
+            return (CollectorHelper) collector;
         }
         return new CollectorHelper<T>() {
             @Override

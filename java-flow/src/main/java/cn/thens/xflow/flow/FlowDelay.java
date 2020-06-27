@@ -9,9 +9,9 @@ import cn.thens.xflow.func.Funcs;
  */
 class FlowDelay<T> extends AbstractFlow<T> {
     private final Flow<T> upFlow;
-    private final Func1<? super Reply<? extends T>, ? extends Flow> delayFunc;
+    private final Func1<? super Reply<? extends T>, ? extends Flowable> delayFunc;
 
-    private FlowDelay(Flow<T> upFlow, Func1<? super Reply<? extends T>, ? extends Flow<?>> delayFunc) {
+    private FlowDelay(Flow<T> upFlow, Func1<? super Reply<? extends T>, ? extends Flowable<?>> delayFunc) {
         this.upFlow = upFlow;
         this.delayFunc = delayFunc;
     }
@@ -24,13 +24,14 @@ class FlowDelay<T> extends AbstractFlow<T> {
                 @Override
                 public void onCollect(Reply<? extends T> reply) {
                     try {
-                        delayFunc.invoke(reply).collect(emitter, new CollectorHelper() {
-                            @Override
-                            protected void onTerminate(Throwable error) throws Throwable {
-                                super.onTerminate(error);
-                                emitter.emit(reply);
-                            }
-                        });
+                        delayFunc.invoke(reply).asFlow()
+                                .collect(emitter, new CollectorHelper() {
+                                    @Override
+                                    protected void onTerminate(Throwable error) throws Throwable {
+                                        super.onTerminate(error);
+                                        emitter.emit(reply);
+                                    }
+                                });
                     } catch (Throwable e) {
                         emitter.error(e);
                     }
@@ -42,11 +43,11 @@ class FlowDelay<T> extends AbstractFlow<T> {
         }
     }
 
-    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Func1<? super Reply<? extends T>, ? extends Flow<?>> delayFunc) {
+    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Func1<? super Reply<? extends T>, ? extends Flowable<?>> delayFunc) {
         return new FlowDelay<>(upFlow, delayFunc);
     }
 
-    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Flow<?> delayFlow) {
+    public static <T> FlowDelay<T> delay(Flow<T> upFlow, Flowable<?> delayFlow) {
         return new FlowDelay<>(upFlow, Funcs.always(delayFlow));
     }
 }

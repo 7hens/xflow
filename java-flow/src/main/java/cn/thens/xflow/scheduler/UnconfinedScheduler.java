@@ -8,7 +8,7 @@ import cn.thens.xflow.cancellable.CompositeCancellable;
 /**
  * @author 7hens
  */
-public class UnconfinedScheduler extends Scheduler {
+class UnconfinedScheduler extends Scheduler {
     @Override
     public Cancellable schedule(Runnable runnable, long delay, TimeUnit unit) {
         if (delay == 0) {

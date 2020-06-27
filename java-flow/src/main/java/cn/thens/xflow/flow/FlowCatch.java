@@ -39,20 +39,20 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
 
     abstract void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable;
 
-    static <T> Flow<T> catchError(Flow<T> upFlow, Func1<Throwable, Flow<T>> resumeFunc) {
+    static <T> Flow<T> catchError(Flow<T> upFlow, Func1<? super Throwable, ? extends Flowable<T>> resumeFunc) {
         return new FlowCatch<T>(upFlow) {
             @Override
             void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable {
-                resumeFunc.invoke(error).collect(emitter);
+                resumeFunc.invoke(error).asFlow().collect(emitter);
             }
         };
     }
 
-    static <T> Flow<T> catchError(Flow<T> upFlow, Flow<T> resumeFlow) {
+    static <T> Flow<T> catchError(Flow<T> upFlow, Flowable<T> resumeFlow) {
         return catchError(upFlow, Funcs.always(resumeFlow));
     }
 
-    static <T> Flow<T> retry(Flow<T> upFlow, Predicate<Throwable> predicate) {
+    static <T> Flow<T> retry(Flow<T> upFlow, Predicate<? super Throwable> predicate) {
         return new FlowCatch<T>(upFlow) {
             @Override
             void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable {

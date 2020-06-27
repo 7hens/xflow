@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.flow.CollectorHelper;
-import cn.thens.xflow.flow.Flow;
+import cn.thens.xflow.flow.Flowable;
 
 /**
  * @author 7hens
@@ -25,7 +25,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public final PredicateHelper<T> and(final Predicate<T> other) {
+    public final PredicateHelper<T> and(final Predicate<? super T> other) {
         PredicateHelper<T> self = this;
         return new PredicateHelper<T>() {
             @Override
@@ -35,7 +35,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public final PredicateHelper<T> or(final Predicate<T> other) {
+    public final PredicateHelper<T> or(final Predicate<? super T> other) {
         PredicateHelper<T> self = this;
         return new PredicateHelper<T>() {
             @Override
@@ -45,7 +45,7 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
         };
     }
 
-    public final PredicateHelper<T> xor(final Predicate<T> other) {
+    public final PredicateHelper<T> xor(final Predicate<? super T> other) {
         PredicateHelper<T> self = this;
         return new PredicateHelper<T>() {
             @Override
@@ -138,15 +138,19 @@ public abstract class PredicateHelper<T> implements Predicate<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> PredicateHelper<T> window(@NotNull Flow<?> flow) {
-        final AtomicBoolean hasNext = new AtomicBoolean(true);
-        flow.onCollect(new CollectorHelper() {
-            @Override
-            protected void onTerminate(Throwable error) throws Throwable {
-                super.onTerminate(error);
-                hasNext.set(false);
-            }
-        }).collect();
-        return of(hasNext);
+    public static <T> PredicateHelper<T> window(@NotNull Flowable<?> flow) {
+        try {
+            final AtomicBoolean hasNext = new AtomicBoolean(true);
+            flow.asFlow().onCollect(new CollectorHelper() {
+                @Override
+                protected void onTerminate(Throwable error) throws Throwable {
+                    super.onTerminate(error);
+                    hasNext.set(false);
+                }
+            }).collect();
+            return of(hasNext);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

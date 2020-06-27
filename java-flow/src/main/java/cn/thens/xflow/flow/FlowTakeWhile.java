@@ -31,7 +31,7 @@ abstract class FlowTakeWhile<T> implements FlowOperator<T, T> {
 
     protected abstract boolean test(T data) throws Throwable;
 
-    static <T> FlowTakeWhile<T> takeWhile(Predicate<T> predicate) {
+    static <T> FlowTakeWhile<T> takeWhile(Predicate<? super T> predicate) {
         return new FlowTakeWhile<T>() {
             @Override
             protected boolean test(T data) throws Throwable {

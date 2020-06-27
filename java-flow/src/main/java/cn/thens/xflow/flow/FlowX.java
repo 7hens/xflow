@@ -23,12 +23,12 @@ public final class FlowX {
         };
     }
 
-    public static <Up, Dn> Operator<Up, Dn> pipe(Func1<? super Flow<Up>, ? extends Flow<Dn>> action) {
+    public static <Up, Dn> Operator<Up, Dn> pipe(Func1<? super Flow<Up>, ? extends Flowable<Dn>> action) {
         return new Operator<Up, Dn>() {
             @Override
-            public Collector<? super Up> apply(Emitter<? super Dn> emitter) {
+            public Collector<? super Up> apply(Emitter<? super Dn> emitter) throws Throwable {
                 AtomicReference<Emitter<? super Up>> upEmitterRef = new AtomicReference<>();
-                Flow.<Up>create(upEmitterRef::set).to(action).collect(emitter);
+                Flow.<Up>create(upEmitterRef::set).to(action).asFlow().collect(emitter);
                 return reply -> upEmitterRef.get().emit(reply);
             }
         };

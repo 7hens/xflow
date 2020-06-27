@@ -27,7 +27,11 @@ class PolyFlowFlatConcat<T> extends AbstractFlow<T> {
                 if (reply.isTerminated()) return;
                 Flowable<T> flowable = reply.data();
                 if (isCollecting.compareAndSet(false, true)) {
-                    flowable.asFlow().collect(emitter, innerCollector);
+                    try {
+                        flowable.asFlow().collect(emitter, innerCollector);
+                    } catch (Throwable e) {
+                        emitter.error(e);
+                    }
                     return;
                 }
                 flowQueue.add(flowable);
@@ -44,7 +48,11 @@ class PolyFlowFlatConcat<T> extends AbstractFlow<T> {
                     isCollecting.set(true);
                     if (reply.isTerminated()) {
                         if (!flowQueue.isEmpty()) {
-                            flowQueue.poll().asFlow().collect(emitter, this);
+                            try {
+                                flowQueue.poll().asFlow().collect(emitter, this);
+                            } catch (Throwable e) {
+                                emitter.error(e);
+                            }
                         } else {
                             isCollecting.set(false);
                         }

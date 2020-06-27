@@ -38,7 +38,11 @@ class PolyFlowFlatZip<T> extends AbstractFlow<List<T>> {
                 Flowable<T> flow = reply.data();
                 Queue<T> dataQueue = new LinkedList<>();
                 cachedDataQueue.add(dataQueue);
-                flow.asFlow().collect(emitter, newInnerCollector(dataQueue));
+                try {
+                    flow.asFlow().collect(emitter, newInnerCollector(dataQueue));
+                } catch (Throwable e) {
+                    emitter.error(e);
+                }
             }
 
             private Collector<T> newInnerCollector(Queue<T> dataQueue) {
