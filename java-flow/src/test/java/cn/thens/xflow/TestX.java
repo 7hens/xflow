@@ -67,6 +67,7 @@ public class TestX {
             protected void onError(Throwable e) throws Throwable {
                 super.onError(e);
                 log("onError: " + e.getClass().getName());
+//                e.printStackTrace();
             }
 
             private void log(String message) {

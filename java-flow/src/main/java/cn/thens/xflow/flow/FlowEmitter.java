@@ -12,21 +12,16 @@ import cn.thens.xflow.scheduler.Schedulers;
 /**
  * @author 7hens
  */
-public class FlowEmitter<T> implements Emitter<T> {
+public class FlowEmitter<T> implements Emitter<T>, Flowable<T> {
     private List<Emitter<? super T>> emitters = new CopyOnWriteArrayList<>();
-    private CollectorEmitter<T> collectorEmitter = new CollectorEmitter<T>(Schedulers.core()) {
+    private CollectorEmitter<T> collectorEmitter = CollectorEmitter.create(Schedulers.core(), new Collector<T>() {
         @Override
-        Collector<T> collector() {
-            return new Collector<T>() {
-                @Override
-                public void onCollect(Reply<? extends T> reply) {
-                    for (Emitter<? super T> emitter : emitters) {
-                        emitter.emit(reply);
-                    }
-                }
-            };
+        public void onCollect(Reply<? extends T> reply) {
+            for (Emitter<? super T> emitter : emitters) {
+                emitter.emit(reply);
+            }
         }
-    };
+    });
 
     @Override
     public void emit(Reply<? extends T> reply) {
@@ -68,6 +63,7 @@ public class FlowEmitter<T> implements Emitter<T> {
         return collectorEmitter.scheduler();
     }
 
+    @Override
     public Flow<T> asFlow() {
         final AtomicReference<Emitter<? super T>> emitterRef = new AtomicReference<>(null);
         return Flow.<T>create(emitter -> {

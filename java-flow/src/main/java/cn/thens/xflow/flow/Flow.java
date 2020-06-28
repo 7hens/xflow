@@ -220,7 +220,11 @@ public abstract class Flow<T> implements Flowable<T> {
     }
 
     public Flow<T> autoCancel(Flowable<?> cancelFlow) {
-        return new FlowAutoCancel<>(this, cancelFlow);
+        return FlowAutoSwitch.autoCancel(this, cancelFlow);
+    }
+
+    public Flow<T> autoSwitch(Flowable<?> cancelFlow, Flowable<T> fallback) {
+        return FlowAutoSwitch.autoSwitch(this, cancelFlow, fallback);
     }
 
     public Flow<T> catchError(Func1<? super Throwable, ? extends Flowable<T>> resumeFunc) {

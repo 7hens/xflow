@@ -1,7 +1,6 @@
 package cn.thens.xflow.flow;
 
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -12,17 +11,18 @@ import cn.thens.xflow.scheduler.Scheduler;
 /**
  * @author 7hens
  */
-abstract class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Collector<T>, Runnable {
+class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Collector<T> {
     private final AtomicBoolean isCollecting = new AtomicBoolean(false);
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);
-    private final Queue<Reply<? extends T>> replyQueue = new LinkedList<>();
+    private final LinkedList<T> queue = new LinkedList<>();
+    private Reply<? extends T> terminalReply = null;
     private final CancellableScheduler scheduler;
+    private final Collector<? super T> collector;
 
-    CollectorEmitter(Scheduler scheduler) {
+    private CollectorEmitter(Scheduler scheduler, Collector<? super T> collector) {
         this.scheduler = scheduler.cancellable();
+        this.collector = wrapCollector(collector);
     }
-
-    abstract Collector<T> collector();
 
     @Override
     public void emit(Reply<? extends T> reply) {
@@ -38,31 +38,46 @@ abstract class CollectorEmitter<T> extends CompositeCancellable implements Emitt
             isTerminated.set(true);
         }
         if (reply.isCancel()) {
-            collector().onCollect(reply);
+            collector.onCollect(reply);
             super.cancel();
             return;
         }
-        replyQueue.add(reply);
         if (isCollecting.compareAndSet(false, true)) {
-            scheduler.schedule(this);
+            scheduler.schedule(() -> collector.onCollect(reply));
+            return;
+        }
+        if (reply.isTerminated()) {
+            terminalReply = reply;
+            return;
+        }
+        try {
+            queue.add(reply.data());
+            onBackpressure(queue);
+        } catch (Throwable e) {
+            error(e);
         }
     }
 
-    @Override
-    public void run() {
-        isCollecting.set(true);
-        try {
-            while (!isCancelled() && !replyQueue.isEmpty()) {
-                Reply<? extends T> reply = replyQueue.poll();
-                collector().onCollect(reply);
+    private Collector<T> wrapCollector(Collector<? super T> collector) {
+        return new Collector<T>() {
+            @Override
+            public void onCollect(Reply<? extends T> reply) {
+                isCollecting.set(true);
+                collector.onCollect(reply);
                 if (reply.isTerminated()) {
-                    super.cancel();
+                    queue.clear();
+                    CollectorEmitter.super.cancel();
                     return;
                 }
+                if (!queue.isEmpty()) {
+                    onCollect(Reply.data(queue.poll()));
+                } else if (terminalReply != null) {
+                    onCollect(terminalReply);
+                } else {
+                    isCollecting.set(false);
+                }
             }
-        } finally {
-            isCollecting.set(false);
-        }
+        };
     }
 
     @Override
@@ -101,12 +116,21 @@ abstract class CollectorEmitter<T> extends CompositeCancellable implements Emitt
         scheduler.cancel();
     }
 
-    static <T> CollectorEmitter<T> create(Scheduler scheduler, Collector<T> collector) {
-        return new CollectorEmitter<T>(scheduler) {
+    protected void onBackpressure(LinkedList<T> queue) throws Throwable {
+    }
+
+    static <T> CollectorEmitter<T> create(Scheduler scheduler, Collector<? super T> collector) {
+        return new CollectorEmitter<T>(scheduler, collector);
+    }
+
+    static <T> CollectorEmitter<T> create(Scheduler scheduler, Collector<? super T> collector, Backpressure<T> backpressure) {
+        return new CollectorEmitter<T>(scheduler, collector) {
             @Override
-            Collector<T> collector() {
-                return collector;
+            protected void onBackpressure(LinkedList<T> queue) throws Throwable {
+                super.onBackpressure(queue);
+                backpressure.apply(queue);
             }
         };
     }
+
 }

@@ -15,7 +15,7 @@ public class FlowTest {
     public void take() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(TestX.collector("A"))
-                .take(0)
+                .take(1)
                 .map(it -> it + "..")
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
@@ -77,11 +77,17 @@ public class FlowTest {
     }
 
     @Test
-    public void autoCancel() {
+    public void autoSwitch() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(TestX.collector("A"))
                 .autoCancel(Flow.timer(2, TimeUnit.SECONDS))
                 .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("C"))
+                .autoSwitch(Flow.timer(2, TimeUnit.SECONDS), Flow.just(22L))
+                .onCollect(TestX.collector("D"))
                 .to(TestX.collect());
     }
 

@@ -3,6 +3,8 @@
 [![jitpack](https://jitpack.io/v/7hens/xflow.svg)](https://jitpack.io/#7hens/xflow)
 [![license](https://img.shields.io/github/license/7hens/xflow.svg)](https://github.com/7hens/xflow/blob/master/LICENSE)
 
+Reactive Flows for JVM and Android
+
 ## Setting up Dependencies
 
 ```groovy
@@ -10,7 +12,7 @@ implementation 'com.github.7hens.xflow:java-flow:0.3'
 implementation 'com.github.7hens.xflow:android-flow:0.3'
 ```
 
-## Sample Usages
+## Sample Usage
 
 ```java
 Flow.just(1, 2, 3, 4, 5)
