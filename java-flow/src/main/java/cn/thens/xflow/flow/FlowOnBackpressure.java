@@ -10,6 +10,7 @@ class FlowOnBackpressure<T> extends Flow<T> {
     private final Flow<T> upFlow;
     private final Backpressure<T> backpressure;
     private final LinkedList<T> queue = new LinkedList<>();
+    private Reply<? extends T> terminalReply = null;
     private AtomicBoolean isCollecting = new AtomicBoolean(false);
 
     FlowOnBackpressure(Flow<T> upFlow, Backpressure<T> backpressure) {
@@ -35,18 +36,23 @@ class FlowOnBackpressure<T> extends Flow<T> {
 
     private void onStart(CollectorEmitter<T> emitter) throws Throwable {
         upFlow.collect(emitter, new Collector<T>() {
+
             @Override
             public void onCollect(Reply<? extends T> reply) {
                 if (emitter.isTerminated()) return;
-                if (reply.isTerminated()) {
+                if (reply.isCancel()) {
                     emitter.emit(reply);
                     return;
                 }
                 if (isCollecting.compareAndSet(false, true)) {
                     emitter.emit(reply);
                 } else {
-                    queue.add(reply.data());
+                    if (reply.isTerminated()) {
+                        terminalReply = reply;
+                        return;
+                    }
                     try {
+                        queue.add(reply.data());
                         backpressure.apply(queue);
                     } catch (Throwable e) {
                         emitter.error(e);
@@ -63,6 +69,7 @@ class FlowOnBackpressure<T> extends Flow<T> {
                 return new Collector<T>() {
                     @Override
                     public void onCollect(Reply<? extends T> reply) {
+                        isCollecting.set(true);
                         collector.onCollect(reply);
                         if (reply.isTerminated()) {
                             queue.clear();
@@ -70,6 +77,8 @@ class FlowOnBackpressure<T> extends Flow<T> {
                         }
                         if (!queue.isEmpty()) {
                             data(queue.poll());
+                        } else if (terminalReply != null) {
+                            emit(terminalReply);
                         } else {
                             isCollecting.set(false);
                         }

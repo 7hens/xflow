@@ -188,14 +188,15 @@ public class FlowTest {
 
     private void backpressure(Backpressure<Long> backpressure) {
         Flow.interval(100, TimeUnit.MILLISECONDS)
+                .take(16)
 //                .onCollect(TestX.collector("A"))
                 .onBackpressure(backpressure)
                 .map(it -> {
                     TestX.delay(400);
                     return it;
                 })
+//                .take(6)
                 .onCollect(TestX.collector("B"))
-                .take(6)
                 .to(TestX.collect());
     }
 
