@@ -12,7 +12,7 @@ import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.flow.Collector;
 import cn.thens.xflow.flow.CollectorHelper;
 import cn.thens.xflow.flow.Flow;
-import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Function;
 import cn.thens.xflow.scheduler.Scheduler;
 import cn.thens.xflow.scheduler.Schedulers;
 
@@ -97,10 +97,10 @@ public class TestX {
         }
     }
 
-    public static <T> Func1<Flow<T>, Void> collect() {
-        return new Func1<Flow<T>, Void>() {
+    public static <T> Function<Flow<T>, Void> collect() {
+        return new Function<Flow<T>, Void>() {
             @Override
-            public Void invoke(Flow<T> flow) throws Throwable {
+            public Void apply(Flow<T> flow) throws Throwable {
                 try {
                     CountDownLatch latch = new CountDownLatch(1);
                     flow.onCollect(CollectorHelper.<T>get()

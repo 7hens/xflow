@@ -3,7 +3,7 @@ package cn.thens.xflow.flow;
 import java.util.concurrent.atomic.AtomicReference;
 
 import cn.thens.xflow.cancellable.Cancellable;
-import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Function;
 import cn.thens.xflow.scheduler.Scheduler;
 
 /**
@@ -14,7 +14,7 @@ public final class FlowX {
     private FlowX() {
     }
 
-    public static <T> Func1<Flow<? extends Flowable<T>>, PolyFlow<T>> poly() {
+    public static <T> Function<Flow<? extends Flowable<T>>, PolyFlow<T>> poly() {
         return flow -> new PolyFlow<T>() {
             @Override
             protected Cancellable collect(Scheduler scheduler, Collector<? super Flowable<T>> collector) {
@@ -23,7 +23,7 @@ public final class FlowX {
         };
     }
 
-    public static <Up, Dn> Operator<Up, Dn> pipe(Func1<? super Flow<Up>, ? extends Flowable<Dn>> action) {
+    public static <Up, Dn> Operator<Up, Dn> pipe(Function<? super Flow<Up>, ? extends Flowable<Dn>> action) {
         return new Operator<Up, Dn>() {
             @Override
             public Collector<? super Up> apply(Emitter<? super Dn> emitter) throws Throwable {

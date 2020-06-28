@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import cn.thens.xflow.cancellable.Cancellable;
-import cn.thens.xflow.func.Action1;
-import cn.thens.xflow.func.Func0;
-import cn.thens.xflow.func.Func1;
-import cn.thens.xflow.func.Func2;
+import cn.thens.xflow.func.Consumer;
+import cn.thens.xflow.func.Supplier;
+import cn.thens.xflow.func.Function;
+import cn.thens.xflow.func.BiFunction;
 import cn.thens.xflow.func.Predicate;
 import cn.thens.xflow.scheduler.Scheduler;
 import cn.thens.xflow.scheduler.Schedulers;
@@ -46,9 +46,9 @@ public abstract class Flow<T> implements Flowable<T> {
         return new FlowFlowOn<>(this, upScheduler);
     }
 
-    public <R> R to(Func1<? super Flow<T>, ? extends R> converter) {
+    public <R> R to(Function<? super Flow<T>, ? extends R> converter) {
         try {
-            return converter.invoke(this);
+            return converter.apply(this);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -70,20 +70,20 @@ public abstract class Flow<T> implements Flowable<T> {
         return from(flowList).to(FlowX.poly());
     }
 
-    public <R> Flow<R> map(Func1<? super T, ? extends R> mapper) {
+    public <R> Flow<R> map(Function<? super T, ? extends R> mapper) {
         return transform(new FlowMap<>(mapper));
     }
 
     @Deprecated
-    public <R> PolyFlow<R> polyMap(Func1<? super T, ? extends Flowable<R>> mapper) {
+    public <R> PolyFlow<R> polyMap(Function<? super T, ? extends Flowable<R>> mapper) {
         return mapToFlow(mapper);
     }
 
-    public <R> PolyFlow<R> mapToFlow(Func1<? super T, ? extends Flowable<R>> mapper) {
+    public <R> PolyFlow<R> mapToFlow(Function<? super T, ? extends Flowable<R>> mapper) {
         return map(mapper).to(FlowX.poly());
     }
 
-    public <R> Flow<R> flatMap(Func1<? super T, ? extends Flowable<R>> mapper) {
+    public <R> Flow<R> flatMap(Function<? super T, ? extends Flowable<R>> mapper) {
         return mapToFlow(mapper).flatMerge();
     }
 
@@ -103,7 +103,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.ignoreElements());
     }
 
-    public <K> Flow<T> distinct(Func1<? super T, ? extends K> keySelector) {
+    public <K> Flow<T> distinct(Function<? super T, ? extends K> keySelector) {
         return transform(FlowFilter.distinct(keySelector));
     }
 
@@ -111,7 +111,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.distinct());
     }
 
-    public <K> Flow<T> distinctUntilChanged(Func1<? super T, ? extends K> keySelector) {
+    public <K> Flow<T> distinctUntilChanged(Function<? super T, ? extends K> keySelector) {
         return transform(FlowFilter.distinctUntilChanged(keySelector));
     }
 
@@ -123,7 +123,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.skip(count));
     }
 
-    public Flow<T> throttleFirst(Func1<? super T, ? extends Flowable<?>> flowFactory) {
+    public Flow<T> throttleFirst(Function<? super T, ? extends Flowable<?>> flowFactory) {
         return transform(FlowThrottleFirst.throttleFirst(flowFactory));
     }
 
@@ -131,7 +131,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowThrottleFirst.throttleFirst(flow));
     }
 
-    public Flow<T> throttleLast(Func1<? super T, ? extends Flowable<?>> flowFactory) {
+    public Flow<T> throttleLast(Function<? super T, ? extends Flowable<?>> flowFactory) {
         return transform(FlowThrottleLast.throttleLast(flowFactory));
     }
 
@@ -187,15 +187,15 @@ public abstract class Flow<T> implements Flowable<T> {
         return FlowRepeat.repeat(this, count);
     }
 
-    public Flow<T> repeat(Func0<? extends Boolean> shouldRepeat) {
+    public Flow<T> repeat(Supplier<? extends Boolean> shouldRepeat) {
         return FlowRepeat.repeat(this, shouldRepeat);
     }
 
-    public <R> Flow<R> reduce(R initialValue, Func2<? super R, ? super T, ? extends R> accumulator) {
+    public <R> Flow<R> reduce(R initialValue, BiFunction<? super R, ? super T, ? extends R> accumulator) {
         return FlowReduce.reduce(this, initialValue, accumulator);
     }
 
-    public Flow<T> reduce(Func2<? super T, ? super T, ? extends T> accumulator) {
+    public Flow<T> reduce(BiFunction<? super T, ? super T, ? extends T> accumulator) {
         return FlowReduce.reduce(this, accumulator);
     }
 
@@ -207,7 +207,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return timeout(timeout, unit, Flow.error(new TimeoutException()));
     }
 
-    public Flow<T> delay(Func1<? super Reply<? extends T>, ? extends Flowable<?>> delayFunc) {
+    public Flow<T> delay(Function<? super Reply<? extends T>, ? extends Flowable<?>> delayFunc) {
         return FlowDelay.delay(this, delayFunc);
     }
 
@@ -227,7 +227,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return FlowAutoSwitch.autoSwitch(this, cancelFlow, fallback);
     }
 
-    public Flow<T> catchError(Func1<? super Throwable, ? extends Flowable<T>> resumeFunc) {
+    public Flow<T> catchError(Function<? super Throwable, ? extends Flowable<T>> resumeFunc) {
         return FlowCatch.catchError(this, resumeFunc);
     }
 
@@ -271,7 +271,7 @@ public abstract class Flow<T> implements Flowable<T> {
         return new FlowOnBackpressure<>(this, backpressure);
     }
 
-    public static <T> Flow<T> create(Action1<? super Emitter<? super T>> onStart) {
+    public static <T> Flow<T> create(Consumer<? super Emitter<? super T>> onStart) {
         return FlowCreate.create(onStart);
     }
 

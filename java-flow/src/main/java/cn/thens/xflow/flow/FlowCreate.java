@@ -4,18 +4,17 @@ package cn.thens.xflow.flow;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import cn.thens.xflow.func.Action1;
-import cn.thens.xflow.func.Func0;
+import cn.thens.xflow.func.Consumer;
 
 /**
  * @author 7hens
  */
 final class FlowCreate {
-    static <T> Flow<T> create(Action1<? super Emitter<? super T>> onStart) {
+    static <T> Flow<T> create(Consumer<? super Emitter<? super T>> onStart) {
         return new AbstractFlow<T>() {
             @Override
             protected void onStart(CollectorEmitter<? super T> emitter) throws Throwable {
-                onStart.invoke(emitter);
+                onStart.accept(emitter);
             }
         };
     }

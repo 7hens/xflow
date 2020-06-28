@@ -5,17 +5,17 @@ import java.util.concurrent.CancellationException;
 
 import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.cancellable.CompositeCancellable;
-import cn.thens.xflow.func.Func1;
-import cn.thens.xflow.func.Funcs;
+import cn.thens.xflow.func.Function;
+import cn.thens.xflow.func.Functions;
 
 /**
  * @author 7hens
  */
 class FlowThrottleLast<T> implements FlowOperator<T, T> {
-    private final Func1<? super T, ? extends Flowable<?>> flowFactory;
+    private final Function<? super T, ? extends Flowable<?>> flowFactory;
     private Cancellable lastFlow = CompositeCancellable.cancelled();
 
-    private FlowThrottleLast(Func1<? super T, ? extends Flowable<?>> flowFactory) {
+    private FlowThrottleLast(Function<? super T, ? extends Flowable<?>> flowFactory) {
         this.flowFactory = flowFactory;
     }
 
@@ -31,7 +31,7 @@ class FlowThrottleLast<T> implements FlowOperator<T, T> {
                 }
                 try {
                     lastFlow.cancel();
-                    lastFlow = flowFactory.invoke(reply.data())
+                    lastFlow = flowFactory.apply(reply.data())
                             .asFlow()
                             .collect(emitter, new CollectorHelper() {
                                 @Override
@@ -49,11 +49,11 @@ class FlowThrottleLast<T> implements FlowOperator<T, T> {
         };
     }
 
-    static <T> FlowOperator<T, T> throttleLast(Func1<? super T, ? extends Flowable<?>> flowFactory) {
+    static <T> FlowOperator<T, T> throttleLast(Function<? super T, ? extends Flowable<?>> flowFactory) {
         return new FlowThrottleLast<T>(flowFactory);
     }
 
     static <T> FlowOperator<T, T> throttleLast(Flowable<?> flow) {
-        return new FlowThrottleLast<T>(Funcs.always(flow));
+        return new FlowThrottleLast<T>(Functions.always(flow));
     }
 }

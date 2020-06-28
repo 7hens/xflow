@@ -5,13 +5,13 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 import cn.thens.xflow.TestX;
-import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Function;
 
 /**
  * @author 7hens
  */
 public class PolyFlowTest {
-    private void flat(Func1<PolyFlow<String>, Flow<String>> converter) {
+    private void flat(Function<PolyFlow<String>, Flow<String>> converter) {
         Flow.interval(2, TimeUnit.SECONDS)
                 .take(3)
                 .onCollect(TestX.collector("A"))

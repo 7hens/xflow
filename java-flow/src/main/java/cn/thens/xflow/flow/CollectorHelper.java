@@ -4,8 +4,8 @@ package cn.thens.xflow.flow;
 import java.util.concurrent.CancellationException;
 
 import cn.thens.xflow.cancellable.Cancellable;
-import cn.thens.xflow.func.Action0;
-import cn.thens.xflow.func.Action1;
+import cn.thens.xflow.func.Action;
+import cn.thens.xflow.func.Consumer;
 
 /**
  * @author 7hens
@@ -51,62 +51,62 @@ public abstract class CollectorHelper<T> implements Collector<T> {
     protected void onCancel() throws Throwable {
     }
 
-    public final CollectorHelper<T> onStart(Action1<? super Cancellable> action) {
+    public final CollectorHelper<T> onStart(Consumer<? super Cancellable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onStart(Cancellable cancellable) throws Throwable {
                 super.onStart(cancellable);
-                action.invoke(cancellable);
+                action.accept(cancellable);
             }
         };
     }
 
-    public final CollectorHelper<T> onEach(Action1<? super T> action) {
+    public final CollectorHelper<T> onEach(Consumer<? super T> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onEach(T data) throws Throwable {
                 super.onEach(data);
-                action.invoke(data);
+                action.accept(data);
             }
         };
     }
 
-    public final CollectorHelper<T> onTerminate(final Action1<? super Throwable> action) {
+    public final CollectorHelper<T> onTerminate(final Consumer<? super Throwable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onTerminate(Throwable error) throws Throwable {
                 super.onTerminate(error);
-                action.invoke(error);
+                action.accept(error);
             }
         };
     }
 
-    public final CollectorHelper<T> onComplete(Action0 action) {
+    public final CollectorHelper<T> onComplete(Action action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onComplete() throws Throwable {
                 super.onComplete();
-                action.invoke();
+                action.run();
             }
         };
     }
 
-    public final CollectorHelper<T> onError(Action1<? super Throwable> action) {
+    public final CollectorHelper<T> onError(Consumer<? super Throwable> action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onError(Throwable error) throws Throwable {
                 super.onError(error);
-                action.invoke(error);
+                action.accept(error);
             }
         };
     }
 
-    public final CollectorHelper<T> onCancel(Action0 action) {
+    public final CollectorHelper<T> onCancel(Action action) {
         return new CollectorHelper.Wrapper<T>(this) {
             @Override
             protected void onCancel() throws Throwable {
                 super.onCancel();
-                action.invoke();
+                action.run();
             }
         };
     }

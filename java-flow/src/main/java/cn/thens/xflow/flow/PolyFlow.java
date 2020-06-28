@@ -2,12 +2,12 @@ package cn.thens.xflow.flow;
 
 import java.util.List;
 
-import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Function;
 
 public abstract class PolyFlow<T> extends Flow<Flowable<T>> {
-    public <R> R polyTo(Func1<? super PolyFlow<T>, ? extends R> converter) {
+    public <R> R polyTo(Function<? super PolyFlow<T>, ? extends R> converter) {
         try {
-            return converter.invoke(this);
+            return converter.apply(this);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

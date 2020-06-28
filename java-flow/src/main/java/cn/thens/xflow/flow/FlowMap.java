@@ -1,14 +1,14 @@
 package cn.thens.xflow.flow;
 
-import cn.thens.xflow.func.Func1;
+import cn.thens.xflow.func.Function;
 
 /**
  * @author 7hens
  */
 class FlowMap<T, R> implements FlowOperator<T, R> {
-    private final Func1<? super T, ? extends R> mapper;
+    private final Function<? super T, ? extends R> mapper;
 
-    FlowMap(Func1<? super T, ? extends R> mapper) {
+    FlowMap(Function<? super T, ? extends R> mapper) {
         this.mapper = mapper;
     }
 
@@ -22,7 +22,7 @@ class FlowMap<T, R> implements FlowOperator<T, R> {
                     return;
                 }
                 try {
-                    emitter.data(mapper.invoke(reply.data()));
+                    emitter.data(mapper.apply(reply.data()));
                 } catch (Throwable e) {
                     emitter.error(e);
                 }

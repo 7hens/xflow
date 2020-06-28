@@ -2,14 +2,14 @@ package cn.thens.xflow.flow;
 
 import java.util.LinkedList;
 
-import cn.thens.xflow.func.Func1;
-import cn.thens.xflow.func.Funcs;
+import cn.thens.xflow.func.Function;
+import cn.thens.xflow.func.Functions;
 
 @SuppressWarnings("WeakerAccess")
 public abstract class Backpressure<T> {
     abstract void apply(LinkedList<T> queue) throws Throwable;
 
-    public final Backpressure<T> catchError(Func1<? super Throwable, ? extends Backpressure<T>> catchError) {
+    public final Backpressure<T> catchError(Function<? super Throwable, ? extends Backpressure<T>> catchError) {
         Backpressure<T> self = this;
         return new Backpressure<T>() {
             @Override
@@ -17,14 +17,14 @@ public abstract class Backpressure<T> {
                 try {
                     self.apply(queue);
                 } catch (Throwable e) {
-                    catchError.invoke(e).apply(queue);
+                    catchError.apply(e).apply(queue);
                 }
             }
         };
     }
 
     public final Backpressure<T> catchError(Backpressure<T> backpressure) {
-        return catchError(Funcs.always(backpressure));
+        return catchError(Functions.always(backpressure));
     }
 
     public final Backpressure<T> dropAll() {

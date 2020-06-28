@@ -5,8 +5,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cn.thens.xflow.func.Func1;
-import cn.thens.xflow.func.Funcs;
+import cn.thens.xflow.func.Function;
+import cn.thens.xflow.func.Functions;
 import cn.thens.xflow.func.Predicate;
 import cn.thens.xflow.func.PredicateHelper;
 
@@ -51,13 +51,13 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
         };
     }
 
-    static <T, K> FlowFilter<T> distinct(final Func1<? super T, ? extends K> keySelector) {
+    static <T, K> FlowFilter<T> distinct(final Function<? super T, ? extends K> keySelector) {
         return new FlowFilter<T>() {
             private Set<K> collectedKeys = new HashSet<>();
 
             @Override
             public boolean test(T data) throws Throwable {
-                K key = keySelector.invoke(data);
+                K key = keySelector.apply(data);
                 if (collectedKeys.contains(key)) {
                     return false;
                 }
@@ -74,16 +74,16 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
     }
 
     static <T> FlowFilter<T> distinct() {
-        return distinct(Funcs.self());
+        return distinct(Functions.self());
     }
 
-    static <T, K> FlowFilter<T> distinctUntilChanged(final Func1<? super T, ? extends K> keySelector) {
+    static <T, K> FlowFilter<T> distinctUntilChanged(final Function<? super T, ? extends K> keySelector) {
         return new FlowFilter<T>() {
             private K lastKey = null;
 
             @Override
             public boolean test(T data) throws Throwable {
-                K key = keySelector.invoke(data);
+                K key = keySelector.apply(data);
                 if (key.equals(lastKey)) {
                     return false;
                 }
@@ -100,7 +100,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
     }
 
     static <T> FlowFilter<T> distinctUntilChanged() {
-        return distinctUntilChanged(Funcs.self());
+        return distinctUntilChanged(Functions.self());
     }
 
     static <T> FlowFilter<T> skip(int count) {

@@ -6,18 +6,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import cn.thens.xflow.cancellable.Cancellable;
 import cn.thens.xflow.cancellable.CompositeCancellable;
-import cn.thens.xflow.func.Func1;
-import cn.thens.xflow.func.Funcs;
+import cn.thens.xflow.func.Function;
+import cn.thens.xflow.func.Functions;
 
 /**
  * @author 7hens
  */
 class FlowThrottleFirst<T> implements FlowOperator<T, T> {
-    private final Func1<? super T, ? extends Flowable<?>> flowFactory;
+    private final Function<? super T, ? extends Flowable<?>> flowFactory;
     private final AtomicBoolean couldEmit = new AtomicBoolean(true);
     private Cancellable lastFlow = CompositeCancellable.cancelled();
 
-    private FlowThrottleFirst(Func1<? super T, ? extends Flowable<?>> flowFactory) {
+    private FlowThrottleFirst(Function<? super T, ? extends Flowable<?>> flowFactory) {
         this.flowFactory = flowFactory;
     }
 
@@ -33,7 +33,7 @@ class FlowThrottleFirst<T> implements FlowOperator<T, T> {
                 }
                 try {
                     lastFlow.cancel();
-                    lastFlow = flowFactory.invoke(reply.data()).asFlow()
+                    lastFlow = flowFactory.apply(reply.data()).asFlow()
                             .collect(emitter, new CollectorHelper() {
                                 @Override
                                 protected void onTerminate(Throwable error) throws Throwable {
@@ -53,11 +53,11 @@ class FlowThrottleFirst<T> implements FlowOperator<T, T> {
         };
     }
 
-    static <T> FlowOperator<T, T> throttleFirst(Func1<? super T, ? extends Flowable<?>> flowFactory) {
+    static <T> FlowOperator<T, T> throttleFirst(Function<? super T, ? extends Flowable<?>> flowFactory) {
         return new FlowThrottleFirst<>(flowFactory);
     }
 
     static <T> FlowOperator<T, T> throttleFirst(Flowable<?> flow) {
-        return new FlowThrottleFirst<>(Funcs.always(flow));
+        return new FlowThrottleFirst<>(Functions.always(flow));
     }
 }

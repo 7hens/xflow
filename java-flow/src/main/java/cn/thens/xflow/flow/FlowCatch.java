@@ -1,8 +1,8 @@
 package cn.thens.xflow.flow;
 
 
-import cn.thens.xflow.func.Func1;
-import cn.thens.xflow.func.Funcs;
+import cn.thens.xflow.func.Function;
+import cn.thens.xflow.func.Functions;
 import cn.thens.xflow.func.Predicate;
 import cn.thens.xflow.func.PredicateHelper;
 
@@ -39,17 +39,17 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
 
     abstract void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable;
 
-    static <T> Flow<T> catchError(Flow<T> upFlow, Func1<? super Throwable, ? extends Flowable<T>> resumeFunc) {
+    static <T> Flow<T> catchError(Flow<T> upFlow, Function<? super Throwable, ? extends Flowable<T>> resumeFunc) {
         return new FlowCatch<T>(upFlow) {
             @Override
             void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable {
-                resumeFunc.invoke(error).asFlow().collect(emitter);
+                resumeFunc.apply(error).asFlow().collect(emitter);
             }
         };
     }
 
     static <T> Flow<T> catchError(Flow<T> upFlow, Flowable<T> resumeFlow) {
-        return catchError(upFlow, Funcs.always(resumeFlow));
+        return catchError(upFlow, Functions.always(resumeFlow));
     }
 
     static <T> Flow<T> retry(Flow<T> upFlow, Predicate<? super Throwable> predicate) {

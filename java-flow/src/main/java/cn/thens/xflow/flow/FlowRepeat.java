@@ -2,7 +2,7 @@ package cn.thens.xflow.flow;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import cn.thens.xflow.func.Func0;
+import cn.thens.xflow.func.Supplier;
 
 /**
  * @author 7hens
@@ -46,11 +46,11 @@ abstract class FlowRepeat<T> extends AbstractFlow<T> {
         };
     }
 
-    static <T> FlowRepeat<T> repeat(Flow<T> upFlow, Func0<? extends Boolean> shouldRepeat) {
+    static <T> FlowRepeat<T> repeat(Flow<T> upFlow, Supplier<? extends Boolean> shouldRepeat) {
         return new FlowRepeat<T>(upFlow) {
             @Override
             void onFlowTerminate(CollectorEmitter<? super T> emitter) throws Throwable {
-                if (shouldRepeat.invoke()) {
+                if (shouldRepeat.get()) {
                     collect(emitter);
                 }
             }

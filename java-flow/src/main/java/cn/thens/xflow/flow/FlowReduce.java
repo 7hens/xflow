@@ -4,7 +4,7 @@ package cn.thens.xflow.flow;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import cn.thens.xflow.func.Func2;
+import cn.thens.xflow.func.BiFunction;
 
 /**
  * @author 7hens
@@ -49,7 +49,7 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
     abstract void accumulate(T data) throws Throwable;
 
     static <T, R> FlowReduce<T, R>
-    reduce(Flow<T> upFlow, R initialValue, Func2<? super R, ? super T, ? extends R> accumulator) {
+    reduce(Flow<T> upFlow, R initialValue, BiFunction<? super R, ? super T, ? extends R> accumulator) {
         return new FlowReduce<T, R>(upFlow) {
             @Override
             protected void onStart(CollectorEmitter<? super R> emitter) {
@@ -59,13 +59,13 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
 
             @Override
             void accumulate(T data) throws Throwable {
-                value.set(accumulator.invoke(value.get(), data));
+                value.set(accumulator.apply(value.get(), data));
             }
         };
     }
 
     static <T> FlowReduce<T, T>
-    reduce(Flow<T> upFlow, Func2<? super T, ? super T, ? extends T> accumulator) {
+    reduce(Flow<T> upFlow, BiFunction<? super T, ? super T, ? extends T> accumulator) {
         return new FlowReduce<T, T>(upFlow) {
             private AtomicBoolean hasValue = new AtomicBoolean(false);
 
@@ -74,7 +74,7 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
                 if (hasValue.compareAndSet(false, true)) {
                     value.set(data);
                 } else {
-                    value.set(accumulator.invoke(value.get(), data));
+                    value.set(accumulator.apply(value.get(), data));
                 }
             }
         };
