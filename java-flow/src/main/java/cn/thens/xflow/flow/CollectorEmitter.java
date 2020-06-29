@@ -123,7 +123,6 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
     protected void onCancel() {
         super.onCancel();
         scheduler.cancel();
-        new Throwable().printStackTrace();
     }
 
     static <T> CollectorEmitter<T> create(Scheduler scheduler, Collector<? super T> collector, Backpressure<T> backpressure) {
