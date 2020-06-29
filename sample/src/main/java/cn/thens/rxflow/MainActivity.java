@@ -8,7 +8,7 @@ import androidx.lifecycle.Lifecycle;
 
 import java.util.concurrent.TimeUnit;
 
-import cn.thens.xflow.AndroidFlow;
+import cn.thens.xflow.LifecycleFlow;
 import cn.thens.xflow.flow.Collector;
 import cn.thens.xflow.flow.CollectorHelper;
 import cn.thens.xflow.flow.Flow;
@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("@Flow", "start");
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(newCollector("A"))
-                .autoCancel(AndroidFlow.lifecycle(this).takeUntil(Lifecycle.Event.ON_PAUSE))
+                .autoCancel(LifecycleFlow.from(this).takeUntil(Lifecycle.Event.ON_PAUSE))
                 .onCollect(newCollector("B"))
                 .collect();
     }

@@ -27,7 +27,7 @@ public class Sample {
                     }
                 })
                 .flowOn(Schedulers.io())
-                .autoCancel(AndroidFlow.lifecycle(activity))
+                .autoCancel(LifecycleFlow.from(activity))
                 .collect();
     }
 }
