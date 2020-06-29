@@ -46,6 +46,26 @@ class ExecutorScheduler extends Scheduler {
         }, delay, unit);
     }
 
+    @Override
+    public Cancellable schedulePeriodically(Runnable runnable, long initialDelay, long period, TimeUnit unit) {
+        if (executor instanceof ScheduledExecutorService) {
+            ScheduledExecutorService scheduledExecutor = (ScheduledExecutorService) this.executor;
+            final ScheduledFuture<?> future = scheduledExecutor.scheduleAtFixedRate(runnable, initialDelay, period, unit);
+            return new CompositeCancellable() {
+                @Override
+                protected void onCancel() {
+                    future.cancel(false);
+                }
+            };
+        }
+        return getScheduledHelper().schedulePeriodically(new Runnable() {
+            @Override
+            public void run() {
+                executor.execute(runnable);
+            }
+        }, initialDelay, period, unit);
+    }
+
     private static volatile Scheduler scheduledHelper;
 
     private static Scheduler getScheduledHelper() {

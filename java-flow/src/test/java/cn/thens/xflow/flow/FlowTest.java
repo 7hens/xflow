@@ -15,7 +15,7 @@ public class FlowTest {
     public void take() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(TestX.collector("A"))
-                .take(1)
+                .take(3)
                 .map(it -> it + "..")
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());
@@ -30,7 +30,7 @@ public class FlowTest {
     }
 
     @Test
-    public void takeLast(){
+    public void takeLast() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(TestX.collector("A"))
                 .take(10)
@@ -40,7 +40,7 @@ public class FlowTest {
     }
 
     @Test
-    public void skipLast(){
+    public void skipLast() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(TestX.collector("A"))
                 .take(10)
@@ -50,7 +50,7 @@ public class FlowTest {
     }
 
     @Test
-    public void elementAt(){
+    public void elementAt() {
         Flow.interval(1, TimeUnit.SECONDS)
                 .onCollect(TestX.collector("A"))
                 .take(10)
