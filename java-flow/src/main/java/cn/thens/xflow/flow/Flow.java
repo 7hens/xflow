@@ -8,11 +8,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import cn.thens.xflow.cancellable.Cancellable;
-import cn.thens.xflow.func.Consumer;
-import cn.thens.xflow.func.Supplier;
-import cn.thens.xflow.func.Function;
 import cn.thens.xflow.func.BiFunction;
+import cn.thens.xflow.func.Consumer;
+import cn.thens.xflow.func.Function;
 import cn.thens.xflow.func.Predicate;
+import cn.thens.xflow.func.Supplier;
 import cn.thens.xflow.scheduler.Scheduler;
 import cn.thens.xflow.scheduler.Schedulers;
 
@@ -123,6 +123,10 @@ public abstract class Flow<T> implements Flowable<T> {
         return transform(FlowFilter.skip(count));
     }
 
+    public Flow<T> skipLast(int count) {
+        return transform(FlowBuffer.skipLast(count));
+    }
+
     public Flow<T> throttleFirst(Function<? super T, ? extends Flowable<?>> flowFactory) {
         return transform(FlowThrottleFirst.throttleFirst(flowFactory));
     }
@@ -144,7 +148,7 @@ public abstract class Flow<T> implements Flowable<T> {
     }
 
     public Flow<T> takeLast(int count) {
-        return transform(new FlowTakeLast<>(count));
+        return transform(FlowBuffer.takeLast(count));
     }
 
     public Flow<T> takeWhile(Predicate<? super T> predicate) {
@@ -168,6 +172,7 @@ public abstract class Flow<T> implements Flowable<T> {
     }
 
     public Flow<T> elementAt(int index) {
+        if (index < 0) return transform(FlowBuffer.lastElement(-index));
         return transform(FlowElementAt.elementAt(index));
     }
 

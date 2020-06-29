@@ -30,6 +30,43 @@ public class FlowTest {
     }
 
     @Test
+    public void takeLast(){
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("A"))
+                .take(10)
+                .takeLast(5)
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void skipLast(){
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("A"))
+                .take(10)
+                .skipLast(5)
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+    }
+
+    @Test
+    public void elementAt(){
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("A"))
+                .take(10)
+                .elementAt(5)
+                .onCollect(TestX.collector("B"))
+                .to(TestX.collect());
+
+        Flow.interval(1, TimeUnit.SECONDS)
+                .onCollect(TestX.collector("C"))
+                .take(10)
+                .elementAt(-5)
+                .onCollect(TestX.collector("D"))
+                .to(TestX.collect());
+    }
+
+    @Test
     public void range() {
         Flow.range(10, 1)
                 .onCollect(TestX.collector("A"))
