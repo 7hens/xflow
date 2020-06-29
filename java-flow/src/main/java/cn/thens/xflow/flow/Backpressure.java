@@ -10,6 +10,16 @@ import cn.thens.xflow.func.Functions;
 public abstract class Backpressure<T> {
     abstract void apply(LinkedList<T> buffer) throws Throwable;
 
+    @Deprecated
+    public final Backpressure<T> catchError(Function<? super Throwable, ? extends Backpressure<T>> catchError) {
+        return or(catchError);
+    }
+
+    @Deprecated
+    public final Backpressure<T> catchError(Backpressure<T> backpressure) {
+        return or(backpressure);
+    }
+
     public final Backpressure<T> or(Function<? super Throwable, ? extends Backpressure<T>> catchError) {
         Backpressure<T> self = this;
         return new Backpressure<T>() {
@@ -73,6 +83,11 @@ public abstract class Backpressure<T> {
                 throw new BufferOverflowException();
             }
         };
+    }
+
+    @Deprecated
+    public static <T> Backpressure<T> none() {
+        return success();
     }
 
     public static <T> Backpressure<T> success() {
