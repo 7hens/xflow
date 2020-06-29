@@ -13,9 +13,11 @@ import cn.thens.xflow.scheduler.Scheduler;
  */
 class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Collector<T> {
     private final AtomicBoolean isCollecting = new AtomicBoolean(false);
-    private final AtomicBoolean isTerminated = new AtomicBoolean(false);
+    private final AtomicBoolean isCollectorTerminated = new AtomicBoolean(false);
+    private final AtomicBoolean isEmitterTerminated = new AtomicBoolean(false);
     private final LinkedList<T> buffer = new LinkedList<>();
     private Reply<? extends T> terminalReply = null;
+
     private final CancellableScheduler scheduler;
     private final Collector<? super T> collector;
     private final Backpressure<T> backpressure;
@@ -33,13 +35,14 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
 
     @Override
     public void onCollect(Reply<? extends T> reply) {
-        if (isTerminated.get()) {
+        if (isEmitterTerminated.get()) {
             return;
         }
         if (reply.isTerminated()) {
-            isTerminated.set(true);
+            isEmitterTerminated.set(true);
         }
         if (reply.isCancel()) {
+            buffer.clear();
             collector.onCollect(reply);
             super.cancel();
             return;
@@ -65,12 +68,16 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
             @Override
             public void onCollect(Reply<? extends T> reply) {
                 isCollecting.set(true);
-                collector.onCollect(reply);
+                if (isCollectorTerminated.get()) return;
                 if (reply.isTerminated()) {
-                    buffer.clear();
-                    CollectorEmitter.super.cancel();
+                    if (isCollectorTerminated.compareAndSet(false, true)) {
+                        buffer.clear();
+                        collector.onCollect(reply);
+                        CollectorEmitter.super.cancel();
+                    }
                     return;
                 }
+                collector.onCollect(reply);
                 if (!buffer.isEmpty()) {
                     onCollect(Reply.data(buffer.poll()));
                 } else if (terminalReply != null) {
@@ -104,7 +111,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
 
     @Override
     public boolean isTerminated() {
-        return isTerminated.get();
+        return isEmitterTerminated.get();
     }
 
     @Override
@@ -116,6 +123,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
     protected void onCancel() {
         super.onCancel();
         scheduler.cancel();
+        new Throwable().printStackTrace();
     }
 
     static <T> CollectorEmitter<T> create(Scheduler scheduler, Collector<? super T> collector, Backpressure<T> backpressure) {
