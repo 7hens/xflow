@@ -16,35 +16,30 @@ class FlowWindow<T> extends AbstractPolyFlow<T> {
     @Override
     protected void onStart(CollectorEmitter<? super Flowable<T>> emitter) throws Throwable {
         emitNewFlow(emitter);
-        upFlow.collect(emitter, reply -> {
-            emitter.scheduler().schedule(new Runnable() {
-                @Override
-                public void run() {
-                    if (currentEmitter != null) {
-                        currentEmitter.emit(reply);
-                    }
-                }
-            });
+        windowFlowable.asFlow().collect(emitter, reply -> {
+            emitNewFlow(emitter);
+            if (reply.isTerminated()) {
+                emitReply(reply.nullReply());
+                emitter.error(reply.error());
+            }
         });
+        upFlow.collect(emitter, this::emitReply);
     }
 
-    @SuppressWarnings("unchecked")
-    private void emitNewFlow(CollectorEmitter<? super Flow<T>> emitter) throws Throwable {
+    private void emitNewFlow(CollectorEmitter<? super Flowable<T>> emitter) {
         emitter.data(new AbstractFlow<T>() {
             @Override
             protected void onStart(CollectorEmitter<? super T> innerEmitter) throws Throwable {
+                emitReply(Reply.complete());
                 currentEmitter = innerEmitter;
             }
         });
-        windowFlowable.asFlow().collect(emitter, new CollectorHelper() {
-            @Override
-            protected void onTerminate(Throwable error) throws Throwable {
-                if (currentEmitter != null) {
-                    currentEmitter.complete();
-                }
-                emitNewFlow(emitter);
-            }
-        });
+    }
+
+    private void emitReply(Reply<? extends T> reply) {
+        if (currentEmitter != null) {
+            currentEmitter.emit(reply);
+        }
     }
 
     static <T> FlowWindow<T> window(Flow<T> upFlow, Flowable<?> windowFlowable) {

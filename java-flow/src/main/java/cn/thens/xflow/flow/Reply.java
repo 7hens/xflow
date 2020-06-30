@@ -12,16 +12,40 @@ public abstract class Reply<T> {
 
     public abstract T data();
 
-    public boolean isComplete() {
+    public final boolean isComplete() {
         return isTerminated() && error() == null;
     }
 
-    public boolean isError() {
+    public final boolean isError() {
         return isTerminated() && error() != null;
     }
 
-    public boolean isCancel() {
+    public final boolean isCancel() {
         return isTerminated() && error() instanceof CancellationException;
+    }
+
+    public final <R> Reply<R> newReply(final R data) {
+        Reply<T> self = this;
+        return new Reply<R>() {
+            @Override
+            public boolean isTerminated() {
+                return self.isTerminated();
+            }
+
+            @Override
+            public Throwable error() {
+                return self.error();
+            }
+
+            @Override
+            public R data() {
+                return data;
+            }
+        };
+    }
+
+    public final <R> Reply<R> nullReply() {
+        return newReply(null);
     }
 
     public static <T> Reply<T> data(final T data) {

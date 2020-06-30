@@ -240,6 +240,10 @@ public abstract class Flow<T> implements Flowable<T> {
         return FlowCatch.catchError(this, resumeFlow);
     }
 
+    public Flow<T> catchError() {
+        return catchError(empty());
+    }
+
     public Flow<T> retry() {
         return FlowCatch.retry(this);
     }

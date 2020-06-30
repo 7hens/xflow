@@ -177,7 +177,7 @@ public class FlowTest {
     @Test
     public void buffer() {
         Flow.interval(1, TimeUnit.SECONDS)
-                .buffer(Flow.timer(2, TimeUnit.SECONDS))
+                .buffer(Flow.interval(2, TimeUnit.SECONDS))
                 .take(5)
                 .onCollect(TestX.collector("B"))
                 .to(TestX.collect());

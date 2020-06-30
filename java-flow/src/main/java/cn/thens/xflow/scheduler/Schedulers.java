@@ -1,6 +1,11 @@
 package cn.thens.xflow.scheduler;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 7hens
@@ -9,8 +14,32 @@ public final class Schedulers {
     private Schedulers() {
     }
 
+    private static volatile Scheduler scheduledHelper;
+
+    private static Scheduler getScheduledHelper() {
+        if (scheduledHelper == null) {
+            synchronized (ExecutorScheduler.class) {
+                if (scheduledHelper == null) {
+                    scheduledHelper = from(Executors.newScheduledThreadPool(1));
+                }
+            }
+        }
+        return scheduledHelper;
+    }
+
     public static Scheduler from(final Executor executor) {
-        return new ExecutorScheduler(executor);
+        if (executor instanceof ScheduledExecutorService) {
+            return new ScheduledExecutorScheduler((ScheduledExecutorService) executor);
+        }
+        return new ExecutorScheduler(getScheduledHelper(), executor);
+    }
+
+    private static Scheduler newScheduler(String name, int expectedThreadCount) {
+        int processorCount = Runtime.getRuntime().availableProcessors();
+        int maxThreadCount = Math.max(processorCount, expectedThreadCount);
+        return from(new ThreadPoolExecutor(processorCount, maxThreadCount,
+                60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1024),
+                new SchedulerThreadFactory(name)));
     }
 
     private static volatile Scheduler IO;
@@ -19,7 +48,7 @@ public final class Schedulers {
         if (IO == null) {
             synchronized (ExecutorScheduler.class) {
                 if (IO == null) {
-                    IO = ExecutorScheduler.newScheduler("io", 64);
+                    IO = newScheduler("io", 64);
                 }
             }
         }
@@ -32,7 +61,7 @@ public final class Schedulers {
         if (CORE == null) {
             synchronized (ExecutorScheduler.class) {
                 if (CORE == null) {
-                    CORE = ExecutorScheduler.newScheduler("core", 2);
+                    CORE = newScheduler("core", 2);
                 }
             }
         }
