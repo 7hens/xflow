@@ -18,6 +18,11 @@ class ExecutorScheduler extends Scheduler {
     }
 
     @Override
+    public Cancellable schedule(Runnable runnable) {
+        return scheduledHelper.schedule(executorRunnable(runnable));
+    }
+
+    @Override
     public Cancellable schedule(Runnable runnable, long delay, TimeUnit unit) {
         return scheduledHelper.schedule(executorRunnable(runnable), delay, unit);
     }
