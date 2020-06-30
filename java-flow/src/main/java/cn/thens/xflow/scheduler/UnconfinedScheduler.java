@@ -16,6 +16,7 @@ class UnconfinedScheduler extends Scheduler {
         } else {
             try {
                 Thread.sleep(unit.toMillis(delay), (int) (unit.toNanos(delay) % 1000000));
+                runnable.run();
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

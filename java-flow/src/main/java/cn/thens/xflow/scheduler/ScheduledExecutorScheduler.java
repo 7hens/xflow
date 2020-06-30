@@ -23,17 +23,21 @@ class ScheduledExecutorScheduler extends Scheduler {
 
     @Override
     public Cancellable schedule(Runnable runnable) {
-        return new CancellableFuture<>(executor.submit(runnable));
+        return cancellable(executor.submit(runnable));
     }
 
     @Override
     public Cancellable schedule(Runnable runnable, long delay, TimeUnit unit) {
-        return new CancellableFuture<>(executor.schedule(runnable, delay, unit));
+        return cancellable(executor.schedule(runnable, delay, unit));
     }
 
     @Override
     public Cancellable schedulePeriodically(Runnable runnable, long initialDelay, long period, TimeUnit unit) {
-        return new CancellableFuture<>(executor.scheduleAtFixedRate(runnable, initialDelay, period, unit));
+        return cancellable(executor.scheduleAtFixedRate(runnable, initialDelay, period, unit));
+    }
+
+    private <V> CancellableFuture<V> cancellable(Future<V> future) {
+        return new CancellableFuture<>(future);
     }
 
     private static final class CancellableFuture<V> extends CompositeCancellable implements Future<V> {
