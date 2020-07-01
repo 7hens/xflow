@@ -29,7 +29,7 @@ public abstract class Flow<T> implements Flowable<T> {
     protected abstract Cancellable collect(Scheduler scheduler, Collector<? super T> collector);
 
     public Cancellable collect() {
-        return collect(Schedulers.core(), CollectorHelper.get());
+        return collect(Schedulers.single(), CollectorHelper.get());
     }
 
     Cancellable collect(Emitter<?> emitter, Collector<? super T> collector) {

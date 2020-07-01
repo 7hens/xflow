@@ -7,31 +7,39 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import cn.thens.xflow.func.Lazy;
+
 /**
  * @author 7hens
  */
+@SuppressWarnings("WeakerAccess")
 public final class Schedulers {
     private Schedulers() {
     }
 
-    private static volatile Scheduler scheduledHelper;
+    private static Lazy<Scheduler> SINGLE = Lazy.of(() -> from(Executors.newScheduledThreadPool(1)));
 
-    private static Scheduler getScheduledHelper() {
-        if (scheduledHelper == null) {
-            synchronized (ExecutorScheduler.class) {
-                if (scheduledHelper == null) {
-                    scheduledHelper = from(Executors.newScheduledThreadPool(1));
-                }
-            }
-        }
-        return scheduledHelper;
+    public static Scheduler single() {
+        return SINGLE.get();
     }
 
     public static Scheduler from(final Executor executor) {
         if (executor instanceof ScheduledExecutorService) {
             return new ScheduledExecutorScheduler((ScheduledExecutorService) executor);
         }
-        return new ExecutorScheduler(getScheduledHelper(), executor);
+        return new ExecutorScheduler(single(), executor);
+    }
+
+    private static Lazy<Scheduler> IO = Lazy.of(() -> newScheduler("io", 64));
+
+    public static Scheduler io() {
+        return IO.get();
+    }
+
+    private static Lazy<Scheduler> CORE = Lazy.of(() -> newScheduler("core", 2));
+
+    public static Scheduler core() {
+        return CORE.get();
     }
 
     private static Scheduler newScheduler(String name, int expectedThreadCount) {
@@ -40,37 +48,5 @@ public final class Schedulers {
         return from(new ThreadPoolExecutor(processorCount, maxThreadCount,
                 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1024),
                 new SchedulerThreadFactory(name)));
-    }
-
-    private static volatile Scheduler IO;
-
-    public static Scheduler io() {
-        if (IO == null) {
-            synchronized (ExecutorScheduler.class) {
-                if (IO == null) {
-                    IO = newScheduler("io", 64);
-                }
-            }
-        }
-        return IO;
-    }
-
-    private static volatile Scheduler CORE;
-
-    public static Scheduler core() {
-        if (CORE == null) {
-            synchronized (ExecutorScheduler.class) {
-                if (CORE == null) {
-                    CORE = newScheduler("core", 2);
-                }
-            }
-        }
-        return CORE;
-    }
-
-    private static Scheduler UNCONFINED = new UnconfinedScheduler();
-
-    public static Scheduler unconfined() {
-        return UNCONFINED;
     }
 }
