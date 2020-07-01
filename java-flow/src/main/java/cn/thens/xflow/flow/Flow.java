@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import cn.thens.xflow.cancellable.Cancellable;
+import cn.thens.xflow.func.Action;
+import cn.thens.xflow.func.BiConsumer;
 import cn.thens.xflow.func.BiFunction;
 import cn.thens.xflow.func.Consumer;
 import cn.thens.xflow.func.Function;
@@ -59,7 +61,31 @@ public abstract class Flow<T> implements Flowable<T> {
     }
 
     public Flow<T> onCollect(Collector<? super T> collector) {
-        return new FlowOnCollect<>(this, collector);
+        return FlowOnCollect.onCollect(this, collector);
+    }
+
+    public Flow<T> onStart(Consumer<? super Cancellable> consumer) {
+        return FlowOnCollect.onStart(this, consumer);
+    }
+
+    public Flow<T> onEach(Consumer<? super T> consumer) {
+        return FlowOnCollect.onEach(this, consumer);
+    }
+
+    public Flow<T> onTerminate(Consumer<? super Throwable> consumer) {
+        return FlowOnCollect.onTerminate(this, consumer);
+    }
+
+    public Flow<T> onComplete(Action action) {
+        return FlowOnCollect.onComplete(this, action);
+    }
+
+    public Flow<T> onError(Consumer<? super Throwable> consumer) {
+        return FlowOnCollect.onError(this, consumer);
+    }
+
+    public Flow<T> onCancel(Action action) {
+        return FlowOnCollect.onCancel(this, action);
     }
 
     @SafeVarargs
@@ -234,6 +260,10 @@ public abstract class Flow<T> implements Flowable<T> {
 
     public Flow<T> catchError(Function<? super Throwable, ? extends Flowable<T>> resumeFunc) {
         return FlowCatch.catchError(this, resumeFunc);
+    }
+
+    public Flow<T> catchError(BiConsumer<? super Throwable, ? super Emitter<? super T>> resumeConsumer) {
+        return FlowCatch.catchError(this, resumeConsumer);
     }
 
     public Flow<T> catchError(Flowable<T> resumeFlow) {

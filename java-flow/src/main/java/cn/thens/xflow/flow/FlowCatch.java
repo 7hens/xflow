@@ -1,8 +1,8 @@
 package cn.thens.xflow.flow;
 
 
+import cn.thens.xflow.func.BiConsumer;
 import cn.thens.xflow.func.Function;
-import cn.thens.xflow.func.Functions;
 import cn.thens.xflow.func.Predicate;
 import cn.thens.xflow.func.PredicateHelper;
 
@@ -48,8 +48,22 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
         };
     }
 
+    static <T> Flow<T> catchError(Flow<T> upFlow, BiConsumer<? super Throwable, ? super Emitter<? super T>> resumeConsumer) {
+        return new FlowCatch<T>(upFlow) {
+            @Override
+            void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable {
+                resumeConsumer.accept(error, emitter);
+            }
+        };
+    }
+
     static <T> Flow<T> catchError(Flow<T> upFlow, Flowable<T> resumeFlow) {
-        return catchError(upFlow, Functions.always(resumeFlow));
+        return new FlowCatch<T>(upFlow) {
+            @Override
+            void handleError(Throwable error, Emitter<? super T> emitter) throws Throwable {
+                resumeFlow.asFlow().collect(emitter);
+            }
+        };
     }
 
     static <T> Flow<T> retry(Flow<T> upFlow, Predicate<? super Throwable> predicate) {

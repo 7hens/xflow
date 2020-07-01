@@ -25,7 +25,7 @@ public final class Functions {
     }
 
     public static final class Result<P1, P2, R> implements
-            Action, Consumer<P1>,
+            Action, Consumer<P1>, BiConsumer<P1, P2>,
             Supplier<R>, Function<P1, R>, BiFunction<P1, P2, R> {
 
         private final R result;
@@ -55,6 +55,10 @@ public final class Functions {
 
         @Override
         public void accept(P1 p1) {
+        }
+
+        @Override
+        public void accept(P1 p1, P2 p2) throws Throwable {
         }
     }
 }
