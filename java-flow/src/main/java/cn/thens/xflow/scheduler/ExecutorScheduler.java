@@ -4,6 +4,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import cn.thens.xflow.cancellable.Cancellable;
+import cn.thens.xflow.cancellable.CompositeCancellable;
 
 /**
  * @author 7hens
@@ -18,8 +19,14 @@ class ExecutorScheduler extends Scheduler {
     }
 
     @Override
-    public Cancellable schedule(Runnable runnable) {
-        return scheduledHelper.schedule(executorRunnable(runnable));
+    public Cancellable schedule(final Runnable runnable) {
+        CompositeCancellable cancellable = new CompositeCancellable();
+        executor.execute(() -> {
+            if (!cancellable.isCancelled()) {
+                runnable.run();
+            }
+        });
+        return cancellable;
     }
 
     @Override
