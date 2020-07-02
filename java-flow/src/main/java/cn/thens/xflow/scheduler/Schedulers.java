@@ -12,12 +12,18 @@ import cn.thens.xflow.func.Lazy;
 /**
  * @author 7hens
  */
-@SuppressWarnings("WeakerAccess")
 public final class Schedulers {
     private Schedulers() {
     }
 
-    private static Lazy<Scheduler> SINGLE = Lazy.of(() -> from(Executors.newScheduledThreadPool(1)));
+    private static Lazy<Scheduler> SINGLE = Lazy.of(() -> {
+        return from(Executors.newScheduledThreadPool(1, runnable -> {
+            Thread thread = new Thread(runnable);
+            thread.setName("single");
+            thread.setDaemon(true);
+            return thread;
+        }));
+    });
 
     public static Scheduler single() {
         return SINGLE.get();
