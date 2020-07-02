@@ -24,7 +24,7 @@ abstract class FlowReduce<T, R> extends AbstractFlow<R> {
 
             @Override
             public void onCollect(Reply<? extends T> reply) {
-                if (reply.isTerminated()) {
+                if (reply.isTerminal()) {
                     Throwable error = reply.error();
                     if (error == null) {
                         if (hasValue.get()) {

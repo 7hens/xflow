@@ -34,7 +34,7 @@ class PolyFlowFlatZip<T> extends AbstractFlow<List<T>> {
                     cachedDataQueue.clear();
                     return;
                 }
-                if (reply.isTerminated()) return;
+                if (reply.isTerminal()) return;
                 Flowable<T> flow = reply.data();
                 Queue<T> dataQueue = new LinkedList<>();
                 cachedDataQueue.add(dataQueue);
@@ -54,7 +54,7 @@ class PolyFlowFlatZip<T> extends AbstractFlow<List<T>> {
                             cachedDataQueue.clear();
                             return;
                         }
-                        if (reply.isTerminated()) return;
+                        if (reply.isTerminal()) return;
                         dataQueue.add(reply.data());
                         tryZip();
                     }

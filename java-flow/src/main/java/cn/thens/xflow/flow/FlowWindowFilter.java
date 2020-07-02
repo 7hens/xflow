@@ -21,7 +21,7 @@ abstract class FlowWindowFilter<T> extends AbstractPolyFlow<T> {
     protected void onStart(CollectorEmitter<? super Flowable<T>> emitter) throws Throwable {
         emitNewFlow(emitter);
         upFlow.collect(emitter, reply -> {
-            if (reply.isTerminated()) {
+            if (reply.isTerminal()) {
                 Throwable error = reply.error();
                 if (currentEmitter != null) {
                     currentEmitter.error(error);

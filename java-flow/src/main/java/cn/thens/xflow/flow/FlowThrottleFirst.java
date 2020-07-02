@@ -27,7 +27,7 @@ class FlowThrottleFirst<T> implements FlowOperator<T, T> {
             @SuppressWarnings("unchecked")
             @Override
             public void onCollect(Reply<? extends T> reply) {
-                if (reply.isTerminated()) {
+                if (reply.isTerminal()) {
                     emitter.emit(reply);
                     return;
                 }

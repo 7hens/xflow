@@ -4,8 +4,6 @@ package cn.thens.xflow.flow;
 import java.util.concurrent.CancellationException;
 
 import cn.thens.xflow.cancellable.Cancellable;
-import cn.thens.xflow.func.Action;
-import cn.thens.xflow.func.Consumer;
 
 /**
  * @author 7hens
@@ -14,7 +12,7 @@ public abstract class CollectorHelper<T> implements Collector<T> {
     @Override
     public void onCollect(Reply<? extends T> reply) {
         try {
-            if (!reply.isTerminated()) {
+            if (!reply.isTerminal()) {
                 onEach(reply.data());
                 return;
             }
@@ -51,66 +49,6 @@ public abstract class CollectorHelper<T> implements Collector<T> {
     protected void onCancel() throws Throwable {
     }
 
-    public final CollectorHelper<T> onStart(Consumer<? super Cancellable> action) {
-        return new CollectorHelper.Wrapper<T>(this) {
-            @Override
-            protected void onStart(Cancellable cancellable) throws Throwable {
-                super.onStart(cancellable);
-                action.accept(cancellable);
-            }
-        };
-    }
-
-    public final CollectorHelper<T> onEach(Consumer<? super T> action) {
-        return new CollectorHelper.Wrapper<T>(this) {
-            @Override
-            protected void onEach(T data) throws Throwable {
-                super.onEach(data);
-                action.accept(data);
-            }
-        };
-    }
-
-    public final CollectorHelper<T> onTerminate(final Consumer<? super Throwable> action) {
-        return new CollectorHelper.Wrapper<T>(this) {
-            @Override
-            protected void onTerminate(Throwable error) throws Throwable {
-                super.onTerminate(error);
-                action.accept(error);
-            }
-        };
-    }
-
-    public final CollectorHelper<T> onComplete(Action action) {
-        return new CollectorHelper.Wrapper<T>(this) {
-            @Override
-            protected void onComplete() throws Throwable {
-                super.onComplete();
-                action.run();
-            }
-        };
-    }
-
-    public final CollectorHelper<T> onError(Consumer<? super Throwable> action) {
-        return new CollectorHelper.Wrapper<T>(this) {
-            @Override
-            protected void onError(Throwable error) throws Throwable {
-                super.onError(error);
-                action.accept(error);
-            }
-        };
-    }
-
-    public final CollectorHelper<T> onCancel(Action action) {
-        return new CollectorHelper.Wrapper<T>(this) {
-            @Override
-            protected void onCancel() throws Throwable {
-                super.onCancel();
-                action.run();
-            }
-        };
-    }
-
     public static <T> CollectorHelper<T> from(final Emitter<? super T> emitter) {
         return new CollectorHelper<T>() {
             @Override
@@ -141,25 +79,5 @@ public abstract class CollectorHelper<T> implements Collector<T> {
     @SuppressWarnings("unchecked")
     public static <T> CollectorHelper<T> get() {
         return INSTANCE;
-    }
-
-    public static class Wrapper<T> extends CollectorHelper<T> {
-        private final CollectorHelper<T> collector;
-
-        public Wrapper(Collector<T> collector) {
-            this.collector = wrap(collector);
-        }
-
-        @Override
-        protected void onStart(Cancellable cancellable) throws Throwable {
-            super.onStart(cancellable);
-            collector.onStart(cancellable);
-        }
-
-        @Override
-        public void onCollect(Reply<? extends T> reply) {
-            super.onCollect(reply);
-            collector.onCollect(reply);
-        }
     }
 }

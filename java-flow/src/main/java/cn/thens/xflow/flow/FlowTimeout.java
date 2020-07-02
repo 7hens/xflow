@@ -41,7 +41,7 @@ class FlowTimeout<T> implements FlowOperator<T, T> {
             if (cancellable != null) {
                 cancellable.cancel();
             }
-            if (reply.isTerminated() || emitter.isTerminated()) {
+            if (reply.isTerminal() || emitter.isTerminated()) {
                 return;
             }
             cancellable = emitter.scheduler().schedule(this, timeout, unit);

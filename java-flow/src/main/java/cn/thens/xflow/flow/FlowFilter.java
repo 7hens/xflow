@@ -20,7 +20,7 @@ abstract class FlowFilter<T> implements FlowOperator<T, T> {
         return new Collector<T>() {
             @Override
             public void onCollect(Reply<? extends T> reply) {
-                if (reply.isTerminated()) {
+                if (reply.isTerminal()) {
                     onTerminated(emitter, reply.error());
                     return;
                 }

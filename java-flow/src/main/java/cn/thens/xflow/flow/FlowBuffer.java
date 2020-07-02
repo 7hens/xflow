@@ -15,7 +15,7 @@ abstract class FlowBuffer<T> implements FlowOperator<T, T> {
     @Override
     public Collector<T> apply(Emitter<? super T> emitter) {
         return reply -> {
-            if (reply.isTerminated()) {
+            if (reply.isTerminal()) {
                 if (reply.error() == null) {
                     onComplete(emitter, buffer);
                 }

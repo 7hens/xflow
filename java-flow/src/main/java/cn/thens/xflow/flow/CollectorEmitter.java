@@ -35,7 +35,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
 
     @Override
     public void onCollect(Reply<? extends T> reply) {
-        if (isEmitterTerminated.compareAndSet(false, reply.isTerminated())) {
+        if (isEmitterTerminated.compareAndSet(false, reply.isTerminal())) {
             if (reply.isCancel()) {
                 buffer.clear();
                 collector.onCollect(reply);
@@ -45,7 +45,7 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
                 scheduler.schedule(() -> collector.onCollect(reply));
                 return;
             }
-            if (reply.isTerminated()) {
+            if (reply.isTerminal()) {
                 terminalReply = reply;
                 return;
             }
@@ -63,9 +63,9 @@ class CollectorEmitter<T> extends CompositeCancellable implements Emitter<T>, Co
             @Override
             public void onCollect(Reply<? extends T> reply) {
                 isCollecting.set(true);
-                if (isCollectorTerminated.compareAndSet(false, reply.isTerminated())) {
+                if (isCollectorTerminated.compareAndSet(false, reply.isTerminal())) {
                     collector.onCollect(reply);
-                    if (reply.isTerminated()) {
+                    if (reply.isTerminal()) {
                         buffer.clear();
                         CollectorEmitter.super.cancel();
                         return;

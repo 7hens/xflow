@@ -69,16 +69,11 @@ public class FlowEmitter<T> implements Emitter<T>, Flowable<T> {
         return Flow.<T>create(emitter -> {
             emitterRef.set(emitter);
             emitters.add(emitter);
-        })////////////
-                .onCollect(new CollectorHelper<T>() {
-                    @Override
-                    protected void onTerminate(Throwable e) throws Throwable {
-                        super.onTerminate(e);
-                        Emitter<? super T> emitter = emitterRef.get();
-                        if (emitter != null) {
-                            emitters.remove(emitter);
-                        }
-                    }
-                });
+        }).onTerminate(it -> {
+            Emitter<? super T> emitter = emitterRef.get();
+            if (emitter != null) {
+                emitters.remove(emitter);
+            }
+        });
     }
 }

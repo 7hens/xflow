@@ -11,7 +11,7 @@ abstract class PolyFlowFlatHelper {
     abstract void onTerminate(Throwable error);
 
     void onOuterCollect(Reply<?> reply) {
-        if (reply.isTerminated()) {
+        if (reply.isTerminal()) {
             Throwable error = reply.error();
             if (error == null) {
                 onEachFlowComplete();
@@ -24,7 +24,7 @@ abstract class PolyFlowFlatHelper {
     }
 
     void onInnerCollect(Reply<?> reply) {
-        if (reply.isTerminated()) {
+        if (reply.isTerminal()) {
             Throwable error = reply.error();
             if (error == null) {
                 onEachFlowComplete();

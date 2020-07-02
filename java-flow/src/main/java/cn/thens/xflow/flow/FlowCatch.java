@@ -21,7 +21,7 @@ abstract class FlowCatch<T> extends AbstractFlow<T> {
         upFlow.collect(emitter, new Collector<T>() {
             @Override
             public void onCollect(Reply<? extends T> reply) {
-                if (reply.isTerminated()) {
+                if (reply.isTerminal()) {
                     Throwable error = reply.error();
                     if (error != null) {
                         try {

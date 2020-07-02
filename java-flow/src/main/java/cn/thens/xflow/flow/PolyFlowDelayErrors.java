@@ -22,7 +22,7 @@ class PolyFlowDelayErrors<T> extends AbstractPolyFlow<T> {
 
             @Override
             public void onCollect(Reply<? extends Flowable<T>> reply) {
-                if (reply.isTerminated()) {
+                if (reply.isTerminal()) {
                     Throwable error = reply.error();
                     if (error == null) {
                         onEachFlowTerminate();

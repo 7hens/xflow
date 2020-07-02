@@ -18,7 +18,7 @@ class PolyFlowFlatMerge<T> extends AbstractFlow<T> {
             @Override
             public void onCollect(Reply<? extends Flowable<T>> reply) {
                 helper.onOuterCollect(reply);
-                if (reply.isTerminated()) return;
+                if (reply.isTerminal()) return;
                 try {
                     reply.data().asFlow().collect(emitter, innerCollector);
                 } catch (Throwable e) {
@@ -30,7 +30,7 @@ class PolyFlowFlatMerge<T> extends AbstractFlow<T> {
                 @Override
                 public void onCollect(Reply<? extends T> reply) {
                     helper.onInnerCollect(reply);
-                    if (reply.isTerminated()) return;
+                    if (reply.isTerminal()) return;
                     emitter.emit(reply);
                 }
             };

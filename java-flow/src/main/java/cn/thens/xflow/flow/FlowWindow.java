@@ -18,8 +18,8 @@ class FlowWindow<T> extends AbstractPolyFlow<T> {
         emitNewFlow(emitter);
         windowFlowable.asFlow().collect(emitter, reply -> {
             emitNewFlow(emitter);
-            if (reply.isTerminated()) {
-                emitReply(reply.nullReply());
+            if (reply.isTerminal()) {
+                emitReply(reply.newReply(null));
                 emitter.error(reply.error());
             }
         });

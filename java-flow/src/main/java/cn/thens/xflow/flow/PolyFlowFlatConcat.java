@@ -24,7 +24,7 @@ class PolyFlowFlatConcat<T> extends AbstractFlow<T> {
             @Override
             public void onCollect(Reply<? extends Flowable<T>> reply) {
                 helper.onOuterCollect(reply);
-                if (reply.isTerminated()) return;
+                if (reply.isTerminal()) return;
                 Flowable<T> flowable = reply.data();
                 if (isCollecting.compareAndSet(false, true)) {
                     try {
@@ -46,7 +46,7 @@ class PolyFlowFlatConcat<T> extends AbstractFlow<T> {
                         return;
                     }
                     isCollecting.set(true);
-                    if (reply.isTerminated()) {
+                    if (reply.isTerminal()) {
                         if (!flowQueue.isEmpty()) {
                             try {
                                 flowQueue.poll().asFlow().collect(emitter, this);

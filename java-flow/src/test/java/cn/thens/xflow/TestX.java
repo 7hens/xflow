@@ -103,9 +103,7 @@ public class TestX {
             public Void apply(Flow<T> flow) throws Throwable {
                 try {
                     CountDownLatch latch = new CountDownLatch(1);
-                    flow.onCollect(CollectorHelper.<T>get()
-                            .onTerminate(it -> latch.countDown()))
-                            .collect();
+                    flow.onTerminate(it -> latch.countDown()).collect();
                     latch.await();
                     delay(100);
                     logger().log("==========================");
